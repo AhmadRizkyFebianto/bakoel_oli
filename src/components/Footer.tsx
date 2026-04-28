@@ -1,71 +1,73 @@
-import { Mail, Phone, MapPin } from 'lucide-react';
-import Link from 'next/link';
+import { Clock, Building2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 export default function Footer() {
   return (
-    <footer className="bg-[#1F2937] text-white pt-16 pb-8">
-      <div className="container mx-auto px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
-          <div className="space-y-6">
-            <div className="flex items-center gap-2">
-              <div className="bg-brand-blue p-2 rounded-lg">
-                <MapPin className="text-white w-5 h-5" />
+    <footer className="bg-[#1A1D27] text-white pt-20 pb-10">
+        <div className="max-w-7xl mx-auto px-4 md:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+            <div className="col-span-1 md:col-span-1 lg:col-span-1">
+               <div className="flex items-center gap-2 mb-6">
+                <div className="w-8 h-8 bg-primary flex items-center justify-center rounded-lg">
+                  <span className="font-display font-bold text-black">B</span>
+                </div>
+                <span className="font-display font-bold text-xl tracking-tighter">BAKUL OLI</span>
               </div>
-              <span className="text-2xl font-bold tracking-tight">BAKUL OLI</span>
+              <p className="text-gray-400 text-sm leading-relaxed mb-6">
+                Solusi terpercaya untuk kebutuhan pelumas dan perawatan otomotif di Surabaya. Ahli dalam menjaga performa mesin Anda.
+              </p>
             </div>
-            <p className="text-gray-400 text-sm leading-relaxed">
-              Solusi terpercaya untuk kebutuhan pelumas dan perawatan otomotif di Surabaya. Ahli dalam menjaga performa mesin Anda.
+
+            <div>
+              <h4 className="font-bold text-lg mb-8 uppercase tracking-wider text-primary">Navigasi</h4>
+              <ul className="space-y-4 text-gray-400 font-medium">
+                <li><a href="#" className="hover:text-primary transition-colors">Beranda</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Tentang Kami</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Produk</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Layanan</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Kontak</a></li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-lg mb-8 uppercase tracking-wider text-primary">Jam Kerja</h4>
+              <ul className="space-y-4 text-gray-400">
+                <li className="flex justify-between">
+                  <span>Senin - Sabtu</span>
+                  <span className="font-bold text-gray-200">08.00 - 17.00</span>
+                </li>
+                <li className="flex justify-between">
+                  <span>Minggu</span>
+                  <span className="font-bold text-gray-200">09.00 - 15.00</span>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold text-lg mb-8 uppercase tracking-wider text-primary">Kontak</h4>
+              <ul className="space-y-4 text-gray-400">
+                <li className="flex gap-4">
+                  <div className="flex-shrink-0 mt-1"><Building2 size={18} className="text-primary"/></div>
+                  <span className="text-sm">Jl. Raya Surabaya No. 123, Surabaya, Jawa Timur</span>
+                </li>
+                <li className="flex gap-4">
+                  <div className="flex-shrink-0 mt-1"><Clock size={18} className="text-primary"/></div>
+                  <span className="text-sm">+62 31 123 4567</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4">
+            <p className="text-gray-500 text-sm">
+              © 2026 Bakul Oli Surabaya. Ahli Perawatan Mesin.
             </p>
-          </div>
-
-          <div>
-            <h4 className="text-lg font-bold mb-6">Navigasi</h4>
-            <ul className="space-y-4 text-sm text-gray-400">
-              <li><Link href="/" className="hover:text-brand-yellow">Beranda</Link></li>
-              <li><Link href="/tentang-kami" className="hover:text-brand-yellow">Tentang Kami</Link></li>
-              <li><Link href="/produk" className="hover:text-brand-yellow">Produk</Link></li>
-              <li><Link href="/layanan" className="hover:text-brand-yellow">Layanan</Link></li>
-              <li><Link href="#" className="hover:text-brand-yellow">Kontak</Link></li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-lg font-bold mb-6">Jam Kerja</h4>
-            <ul className="space-y-4 text-sm text-gray-400">
-              <li className="flex justify-between">
-                <span>Senin - Sabtu</span>
-                <span>08.00 - 17.00</span>
-              </li>
-              <li className="flex justify-between">
-                <span>Minggu</span>
-                <span>09.00 - 15.00</span>
-              </li>
-            </ul>
-          </div>
-
-          <div>
-            <h4 className="text-lg font-bold mb-6">Kontak</h4>
-            <ul className="space-y-4 text-sm text-gray-400">
-              <li className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-brand-yellow shrink-0" />
-                <span>Jl. Raya Surabaya No. 123, Surabaya, Jawa Timur</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-brand-yellow shrink-0" />
-                <span>+62 31 123 4567</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-brand-yellow shrink-0" />
-                <span>info@bakuloli.com</span>
-              </li>
-            </ul>
+            <div className="flex gap-6">
+              <a href="#" className="text-gray-500 hover:text-white transition-colors text-sm">Kebijakan Privasi</a>
+              <a href="#" className="text-gray-500 hover:text-white transition-colors text-sm">Syarat & Ketentuan</a>
+            </div>
           </div>
         </div>
-        
-        <div className="mt-16 pt-8 border-t border-gray-800 text-center text-sm text-gray-500">
-          <p>© 2026 Bakul Oli Surabaya. Ahli Perawatan Mesin.</p>
-        </div>
-      </div>
-    </footer>
+      </footer>
   );
 }
