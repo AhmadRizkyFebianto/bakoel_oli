@@ -1,17 +1,17 @@
-import { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingCart, Search, Menu } from 'lucide-react';
+import { useState, useEffect } from "react";
+import { Link, useLocation } from "react-router-dom";
+import { ShoppingCart, Search, Menu } from "lucide-react";
 
 interface NavbarProps {
   cartCount: number;
 }
 
 const NAV_LINKS = [
-  { name: 'Beranda', path: '/' },
-  { name: 'Tentang Kami', path: '/tentang-kami' },
-  { name: 'Produk', path: '/produk' },
-  { name: 'Layanan', path: '/layanan' },
-  { name: 'Kontak', path: '#' },
+  { name: "Beranda", path: "/" },
+  { name: "Tentang Kami", path: "/tentang-kami" },
+  { name: "Produk", path: "/produk" },
+  { name: "Layanan", path: "/layanan" },
+  { name: "Kontak", path: "#" },
 ];
 
 export default function Navbar({ cartCount }: NavbarProps) {
@@ -21,8 +21,8 @@ export default function Navbar({ cartCount }: NavbarProps) {
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
   // Close mobile menu on route change
@@ -33,7 +33,7 @@ export default function Navbar({ cartCount }: NavbarProps) {
   return (
     <nav
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-        isScrolled ? 'bg-white shadow-md py-3' : 'bg-white py-5'
+        isScrolled ? "bg-white shadow-md py-3" : "bg-white py-5"
       }`}
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
@@ -42,7 +42,9 @@ export default function Navbar({ cartCount }: NavbarProps) {
           <div className="bg-brand-blue p-2 rounded-lg">
             <ShoppingCart className="text-white w-6 h-6" />
           </div>
-          <span className="text-2xl font-bold text-brand-dark tracking-tight">BAKUL OLI</span>
+          <span className="text-2xl font-bold text-brand-dark tracking-tight">
+            BAKUL OLI
+          </span>
         </Link>
 
         {/* Desktop Nav */}
@@ -51,10 +53,10 @@ export default function Navbar({ cartCount }: NavbarProps) {
             <Link
               key={link.name}
               to={link.path}
-              className={`hover:text-brand-blue transition-colors ${
+              className={`hover:text-brand-yellow transition-colors ${
                 location.pathname === link.path
-                  ? 'text-brand-blue font-bold border-b-2 border-brand-yellow pb-1'
-                  : 'text-gray-600'
+                  ? "text-brand-yellow font-bold border-b-2 border-brand-yellow pb-1"
+                  : "text-gray-600"
               }`}
             >
               {link.name}
@@ -64,11 +66,14 @@ export default function Navbar({ cartCount }: NavbarProps) {
 
         {/* Actions */}
         <div className="flex items-center gap-4">
-          <button className="p-2 text-gray-600 hover:text-brand-blue">
+          <button className="p-2 text-gray-600 hover:text-brand-yellow">
             <Search className="w-5 h-5" />
           </button>
 
-          <Link to="/keranjang" className="relative p-2 text-gray-600 hover:text-brand-blue">
+          <Link
+            to="/keranjang"
+            className="relative p-2 text-gray-600 hover:text-brand-yellow"
+          >
             <ShoppingCart className="w-5 h-5" />
             {cartCount > 0 && (
               <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
@@ -84,7 +89,10 @@ export default function Navbar({ cartCount }: NavbarProps) {
             Masuk
           </Link>
 
-          <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="md:hidden p-2">
+          <button
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            className="md:hidden p-2"
+          >
             <Menu className="w-6 h-6" />
           </button>
         </div>
@@ -99,8 +107,8 @@ export default function Navbar({ cartCount }: NavbarProps) {
               to={link.path}
               className={`block py-2 text-sm font-medium transition-colors ${
                 location.pathname === link.path
-                  ? 'text-brand-blue font-bold'
-                  : 'text-gray-600 hover:text-brand-blue'
+                  ? "text-brand-yellow font-bold"
+                  : "text-gray-600 hover:text-brand-yellow"
               }`}
             >
               {link.name}
