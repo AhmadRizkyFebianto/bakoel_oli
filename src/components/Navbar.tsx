@@ -39,8 +39,8 @@ export default function Navbar({ cartCount }: NavbarProps) {
       <div className="container mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2">
-          <div className="bg-brand-blue p-2 rounded-lg">
-            <ShoppingCart className="text-white w-6 h-6" />
+          <div className="">
+            <img src="/assets/Logo.png" alt="Logo" className="w-8 h-8" />
           </div>
           <span className="text-2xl font-bold text-brand-dark tracking-tight">
             BAKUL OLI
