@@ -1,4 +1,5 @@
-import { Product } from "../types";
+"use client";
+import { Product } from "../app/types";
 
 export const PRODUCTS: Product[] = Array(12)
   .fill({

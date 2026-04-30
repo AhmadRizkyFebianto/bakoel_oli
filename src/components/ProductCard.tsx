@@ -1,4 +1,5 @@
-import { Product } from '../types';
+"use client";
+import { Product } from "../app/types";
 
 interface ProductCardProps {
   product: Product;
@@ -16,9 +17,11 @@ export default function ProductCard({ product, onAdd }: ProductCardProps) {
         />
       </div>
       <h4 className="font-bold text-lg mb-1">{product.name}</h4>
-      <p className="text-xs text-brand-blue font-medium mb-3">{product.category}</p>
+      <p className="text-xs text-brand-blue font-medium mb-3">
+        {product.category}
+      </p>
       <span className="text-xl font-extrabold text-brand-blue mb-6">
-        Rp. {product.price.toLocaleString('id-ID')}
+        Rp. {product.price.toLocaleString("id-ID")}
       </span>
       <button
         onClick={onAdd}

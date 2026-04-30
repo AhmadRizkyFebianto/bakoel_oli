@@ -1,4 +1,5 @@
-import { Link } from "react-router-dom";
+"use client";
+import Link from "next/link";
 
 interface CtaBannerProps {
   title?: string;
@@ -34,7 +35,7 @@ export default function CtaBanner({
           <p className="text-blue-100">{description}</p>
         </div>
         <Link
-          to={buttonTo}
+          href={buttonTo}
           className="bg-brand-yellow text-brand-dark px-10 py-4 rounded-2xl font-bold text-lg hover:scale-105 transition-all shadow-2xl shrink-0"
         >
           {buttonLabel}

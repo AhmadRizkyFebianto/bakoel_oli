@@ -1,44 +1,49 @@
-'use client';
-
-import { motion } from 'motion/react';
-import { ArrowLeft, Lock } from 'lucide-react';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState, FormEvent } from 'react';
+"use client";
+import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft, Mail, Lock } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, FormEvent } from "react";
 
 export default function Login() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
     // Simulate login
-    console.log('Logging in with:', email, password);
-    router.push('/');
+    console.log("Logging in with:", email, password);
+    router.push("/");
   };
 
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row h-auto md:h-[650px]"
       >
+        {/* Left Side - Brand Color */}
         <div className="w-full md:w-1/2 bg-brand-blue flex items-center justify-center p-12">
           <div className="text-white text-center">
-             <div className="bg-white/10 p-6 rounded-full inline-block mb-6 backdrop-blur-sm">
-                <Lock className="w-16 h-16 text-brand-yellow" />
-             </div>
-             <h2 className="text-4xl font-bold mb-4 tracking-tight">Bengkel Profesional</h2>
-             <p className="text-blue-100 opacity-80">Pelayanan terbaik untuk mesin kendaraan Anda dimulai dari sini.</p>
+            <div className="bg-white/10 p-6 rounded-full inline-block mb-6 backdrop-blur-sm">
+              <Lock className="w-16 h-16 text-brand-yellow" />
+            </div>
+            <h2 className="text-4xl font-bold mb-4 tracking-tight">
+              Bengkel Profesional
+            </h2>
+            <p className="text-blue-100 opacity-80">
+              Pelayanan terbaik untuk mesin kendaraan Anda dimulai dari sini.
+            </p>
           </div>
         </div>
 
+        {/* Right Side - Form */}
         <div className="w-full md:w-1/2 p-8 md:p-16 relative bg-white">
-          <button 
-            onClick={() => router.back()} 
-            className="flex items-center gap-2 text-gray-500 hover:text-brand-blue transition-colors mb-12 group"
+          <button
+            onClick={() => router.push("/")}
+            className="flex items-center gap-2 text-gray-500 hover:text-brand-blue transition-colors mb-4 group"
           >
             <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
             <span className="font-medium">Kembali</span>
@@ -46,17 +51,19 @@ export default function Login() {
 
           <div className="mb-10">
             <h1 className="text-4xl font-bold text-gray-800 mb-2 leading-tight">
-              Selamat Datang di Bengkel <br />
+              Selamat Datang di Bengkel{" "}
               <span className="text-brand-yellow">Bakul Oli</span>
             </h1>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Email</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Email
+              </label>
               <div className="relative">
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   placeholder="Masukan Email......"
                   className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
                   value={email}
@@ -67,10 +74,12 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-gray-700 mb-2">Password</label>
+              <label className="block text-sm font-bold text-gray-700 mb-2">
+                Password
+              </label>
               <div className="relative">
-                <input 
-                  type="password" 
+                <input
+                  type="password"
                   placeholder="Masukan Password......"
                   className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
                   value={password}
@@ -80,7 +89,7 @@ export default function Login() {
               </div>
             </div>
 
-            <button 
+            <button
               type="submit"
               className="w-full bg-brand-yellow text-brand-dark py-4 rounded-xl font-bold text-lg hover:brightness-105 transition-all shadow-lg mt-4 active:scale-[0.98]"
             >
@@ -88,9 +97,15 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-12 text-center">
+          <div className="mt-8 text-center">
             <p className="text-gray-500 font-medium">
-              Belum punya akun? <Link href="#" className="text-brand-yellow font-bold hover:underline">Daftar</Link>
+              Belum punya akun?{" "}
+              <Link
+                href="/daftar"
+                className="text-brand-yellow font-bold hover:underline"
+              >
+                Daftar
+              </Link>
             </p>
           </div>
         </div>

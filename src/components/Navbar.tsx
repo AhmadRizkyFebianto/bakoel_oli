@@ -1,6 +1,8 @@
+"use client";
 import { useState, useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import Link from "next/link";
 import { ShoppingCart, Search, Menu } from "lucide-react";
+import { usePathname } from "next/navigation";
 
 interface NavbarProps {
   cartCount: number;
@@ -17,7 +19,7 @@ const NAV_LINKS = [
 export default function Navbar({ cartCount }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const location = useLocation();
+  const pathname = usePathname();
 
   useEffect(() => {
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
@@ -28,7 +30,7 @@ export default function Navbar({ cartCount }: NavbarProps) {
   // Close mobile menu on route change
   useEffect(() => {
     setIsMenuOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   return (
     <nav
@@ -38,7 +40,7 @@ export default function Navbar({ cartCount }: NavbarProps) {
     >
       <div className="container mx-auto px-6 flex items-center justify-between">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <div className="">
             <img src="/assets/Logo.png" alt="Logo" className="w-8 h-8" />
           </div>
@@ -52,9 +54,9 @@ export default function Navbar({ cartCount }: NavbarProps) {
           {NAV_LINKS.map((link) => (
             <Link
               key={link.name}
-              to={link.path}
+              href={link.path}
               className={`hover:text-brand-yellow transition-colors ${
-                location.pathname === link.path
+                pathname === link.path
                   ? "text-brand-yellow font-bold border-b-2 border-brand-yellow pb-1"
                   : "text-gray-600"
               }`}
@@ -71,7 +73,7 @@ export default function Navbar({ cartCount }: NavbarProps) {
           </button>
 
           <Link
-            to="/keranjang"
+            href="/keranjang"
             className="relative p-2 text-gray-600 hover:text-brand-yellow"
           >
             <ShoppingCart className="w-5 h-5" />
@@ -83,7 +85,7 @@ export default function Navbar({ cartCount }: NavbarProps) {
           </Link>
 
           <Link
-            to="/login"
+            href="/login"
             className="hidden md:block bg-brand-yellow px-6 py-2 rounded-lg font-bold text-sm hover:brightness-105 shadow-sm text-brand-dark"
           >
             Masuk
@@ -104,9 +106,9 @@ export default function Navbar({ cartCount }: NavbarProps) {
           {NAV_LINKS.map((link) => (
             <Link
               key={link.name}
-              to={link.path}
+              href={link.path}
               className={`block py-2 text-sm font-medium transition-colors ${
-                location.pathname === link.path
+                pathname === link.path
                   ? "text-brand-yellow font-bold"
                   : "text-gray-600 hover:text-brand-yellow"
               }`}
@@ -115,7 +117,7 @@ export default function Navbar({ cartCount }: NavbarProps) {
             </Link>
           ))}
           <Link
-            to="/login"
+            href="/login"
             className="block w-full text-center bg-brand-yellow px-6 py-2 rounded-lg font-bold text-sm text-brand-dark mt-2"
           >
             Masuk
