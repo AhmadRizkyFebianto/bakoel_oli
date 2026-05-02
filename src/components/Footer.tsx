@@ -1,6 +1,5 @@
 "use client";
 import { Clock, Building2 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
