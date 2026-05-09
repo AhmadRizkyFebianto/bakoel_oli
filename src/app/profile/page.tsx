@@ -2,6 +2,7 @@
 import { useState } from "react";
 import CtaBanner from "../../components/CtaBanner";
 import { FEATURED_PRODUCTS } from "@/src/data/products";
+import { div } from "motion/react-client";
 
 export default function Profile() {
   return (
@@ -25,23 +26,69 @@ export default function Profile() {
 }
 
 function ProfilePhoto() {
+  const [isOpen, setIsOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState(null);
+  const closeModal = () => {
+    setIsOpen(false);
+  };
+
   return (
-    <div className="bg-white p-8 shadow-lg w-full max-w-md h-[350px]">
-      <div className="flex justify-center mb-6">
-        <img
-          src="/assets/profile.png"
-          alt="Oil"
-          className="h-32 object-contain"
-        />
+    <>
+      <div className="bg-white p-8 shadow-lg w-full max-w-md h-[350px]">
+        <div className="flex justify-center mb-6">
+          <img
+            src="/assets/profile.png"
+            alt="Oil"
+            className="h-32 object-contain"
+          />
+        </div>
+        <div className="text-center">
+          <h3 className="text-2xl font-medium">Customer</h3>
+          <h4 className="text-lg">customer@gmail.com</h4>
+        </div>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="w-full bg-brand-yellow py-3 rounded-lg font-bold mt-4 hover:brightness-105 transition-all"
+        >
+          Ubah Profile
+        </button>
       </div>
-      <div className="text-center">
-        <h3 className="text-2xl font-medium">Customer</h3>
-        <h4 className="text-lg">customer@gmail.com</h4>
-      </div>
-      <button className="w-full bg-brand-yellow py-3 rounded-lg font-bold mt-4 hover:brightness-105 transition-all">
-        Ubah Profile
-      </button>
-    </div>
+      {isOpen && (
+        <div
+          className="min-h-screen w-screen fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md px-4"
+          onClick={closeModal}
+        >
+          <div className="bg-white w-full max-w-sm p-6 rounded-xl shadow-2xl">
+            <div className="flex justify-center mb-4">
+              {previewImage ? (
+                <img
+                  src={previewImage}
+                  alt="Preview"
+                  className="h-32 w-32 object-cover rounded-full border-2 border-gray-200"
+                />
+              ) : (
+                <div className="h-32 w-32 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300">
+                  <span className="text-gray-400 text-sm">Preview</span>
+                </div>
+              )}
+            </div>
+            <input
+              type="file"
+              accept="image/*"
+              className="block w-full text-sm text-gray-500 mb-6
+                file:mr-4 file:py-2 file:px-4
+                file:rounded-lg file:border-0
+                file:text-sm file:font-semibold
+                file:bg-gray-100 file:text-gray-700
+                hover:file:bg-gray-200 transition-all cursor-pointer"
+            />
+            <button className="w-full bg-brand-yellow py-3 rounded-lg font-bold mt-4 hover:brightness-105 transition-all">
+              Simpan
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -157,7 +204,7 @@ function EditHistory() {
         {activeTab === "dashboard" && (
           <div className="">
             {FEATURED_PRODUCTS.map((item) => (
-              <div className="">
+              <div className="mb-2">
                 <div className="flex flex-col sm:flex-row items-center">
                   <div className="w-24 h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2">
                     <img
@@ -181,6 +228,7 @@ function EditHistory() {
                     </div>
                   </div>
                 </div>
+                <div className="h-1 w-auto bg-gray-100 my-1.5" />
               </div>
             ))}
           </div>
