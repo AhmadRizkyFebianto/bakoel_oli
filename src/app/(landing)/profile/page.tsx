@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import CtaBanner from "../../components/CtaBanner";
+import CtaBanner from "../../../components/CtaBanner";
 import { FEATURED_PRODUCTS } from "@/src/data/products";
 import { div } from "motion/react-client";
 

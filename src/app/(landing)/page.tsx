@@ -10,9 +10,9 @@ import {
   Plus,
 } from "lucide-react";
 import Link from "next/link";
-import { Product } from "../app/types";
-import { FEATURED_PRODUCTS } from "../data/products";
-import ProductCard from "../components/ProductCard";
+import { Product } from "../types";
+import { FEATURED_PRODUCTS } from "../../data/products";
+import ProductCard from "../../components/ProductCard";
 import { useState, useEffect } from "react";
 
 const FEATURES = [
