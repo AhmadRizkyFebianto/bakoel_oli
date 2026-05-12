@@ -10,6 +10,7 @@ import {
   Users,
   Settings,
   LogOut,
+  BookText,
 } from "lucide-react";
 
 import {
@@ -29,13 +30,13 @@ import {
 const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Produk", url: "/dashboard/produk", icon: Package },
-  { title: "Kategori", url: "/kategori", icon: Tags },
-  { title: "Pesanan", url: "/pesanan", icon: ShoppingCart },
+  { title: "Pesanan", url: "/dashboard/pesanan", icon: ShoppingCart },
+  { title: "Pembukuan", url: "/dashboard/pembukuan", icon: BookText },
 ];
 
 const otherItems = [
-  { title: "Pelanggan", url: "/pelanggan", icon: Users },
-  { title: "Pengaturan", url: "/pengaturan", icon: Settings },
+  { title: "Pelanggan", url: "/dashboard/pelanggan", icon: Users },
+  { title: "Pengaturan", url: "/dashboard/pengaturan", icon: Settings },
 ];
 
 export function AppSidebar() {
