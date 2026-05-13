@@ -6,10 +6,10 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
-import { Product } from "../types";
-import { PRODUCTS } from "../../data/products";
-import ProductCard from "../../components/ProductCard";
-import PageBanner from "../../components/PageBanner";
+import { Product } from "../../types";
+import { PRODUCTS } from "../../../data/products";
+import ProductCard from "../../../components/ProductCard";
+import PageBanner from "../../../components/PageBanner";
 
 const CATEGORIES = [
   "Motor Matic",

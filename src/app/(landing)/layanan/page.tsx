@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Clock, Calendar, Users, Star } from "lucide-react";
-import PageBanner from "../../components/PageBanner";
+import PageBanner from "../../../components/PageBanner";
 
 const TRUST_ITEMS = [
   { icon: <Clock className="w-5 h-5" />, label: "Layanan Cepat" },
