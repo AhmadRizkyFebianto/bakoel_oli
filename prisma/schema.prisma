@@ -22,3 +22,14 @@ model User {
   jenis_mesin String
   createdAt   DateTime @default(now())
 }
+model Product {
+  id           String @id @default(cuid())
+  nama_product String @unique
+  sku          String @unique
+  kategori     String
+  harga        Int
+  stok         Int
+  status       String
+  deskripsi    String
+  createdAt    DateTime @default(now())
+}
