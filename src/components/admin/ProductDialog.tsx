@@ -140,7 +140,6 @@ export function ProductDialog({ open, onOpenChange, product }: Props) {
                 <SelectContent>
                   <SelectItem value="Aktif">Aktif</SelectItem>
                   <SelectItem value="Habis">Habis</SelectItem>
-                  <SelectItem value="Draft">Draft</SelectItem>
                 </SelectContent>
               </Select>
             </div>

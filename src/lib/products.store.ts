@@ -9,7 +9,7 @@ export interface Product {
   price: number;
   stock: number;
   sku: string;
-  status: "Aktif" | "Habis" | "Draft";
+  status: "Aktif" | "Habis";
   description?: string;
 }
 
@@ -21,7 +21,7 @@ const seed: Product[] = [
   { id: "5", name: "Filter Oli Honda Genuine", category: "Filter", price: 35000, stock: 120, sku: "HND-FLT-OIL", status: "Aktif" },
   { id: "6", name: "Pelumas Rantai Repsol", category: "Pelumas", price: 48000, stock: 17, sku: "RPL-CHN-LUB", status: "Aktif" },
   { id: "7", name: "Brake Cleaner WD-40", category: "Perawatan", price: 42000, stock: 5, sku: "WD40-BRK-CLN", status: "Aktif" },
-  { id: "8", name: "Coolant Prestone Yellow 1L", category: "Coolant", price: 38000, stock: 33, sku: "PRS-CLT-YL1", status: "Draft" },
+  { id: "8", name: "Coolant Prestone Yellow 1L", category: "Coolant", price: 38000, stock: 33, sku: "PRS-CLT-YL1", status: "Aktif" },
 ];
 
 let products: Product[] = [...seed];

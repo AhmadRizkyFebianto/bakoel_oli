@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Pencil, Search, Package, Info, Phone, MapPin, CalendarDays } from "lucide-react";
+import { Search, Package, Info, Phone, MapPin, CalendarDays } from "lucide-react";
 
 import { AdminLayout } from "@/src/components/admin/AdminLayout";
 import { Button } from "@/src/components/ui/button";
@@ -37,15 +37,18 @@ import { useOrders, type Order, type OrderStatus, formatRupiah, formatTanggal } 
 
 function statusBadge(s: OrderStatus) {
   const map: Record<OrderStatus, string> = {
-    Baru: "bg-primary/15 text-foreground border-primary/30",
-    Dikemas: "bg-success/15 text-success-foreground border-success/30",
-    Dikirim: "bg-chart-4/20 text-foreground border-chart-4/30",
-    Selesai: "bg-muted text-muted-foreground border-border",
+    BelumBayar: "bg-destructive/15 text-foreground border-primary/30",
+    SudahBayar: "bg-success/15 text-success-foreground border-success/30",
+  };
+
+  const labelMap: Record<OrderStatus, string> = {
+    BelumBayar: "Belum Bayar",
+    SudahBayar: "Sudah Bayar",
   };
 
   return (
     <Badge variant="outline" className={`${map[s]} font-medium`}>
-      {s}
+      {labelMap[s]}
     </Badge>
   );
 }
@@ -77,7 +80,7 @@ export default function PesananPage() {
   const [activeId, setActiveId] = useState<string | null>(null);
 
   const statuses = useMemo(
-    () => ["Semua", "Baru", "Dikemas", "Dikirim", "Selesai"] as const,
+    () => ["Semua", "Belum Bayar", "Sudah Bayar"] as const,
     [],
   );
 
@@ -96,10 +99,9 @@ export default function PesananPage() {
 
   const stats = useMemo(() => {
     const total = orders.length;
-    const baru = orders.filter((o) => o.status === "Baru").length;
-    const dikemas = orders.filter((o) => o.status === "Dikemas").length;
-    const dikirim = orders.filter((o) => o.status === "Dikirim").length;
-    return { total, baru, dikemas, dikirim };
+    const belum_bayar = orders.filter((o) => o.status === "BelumBayar").length;
+    const sudah_bayar = orders.filter((o) => o.status === "SudahBayar").length;
+    return { total, belum_bayar, sudah_bayar };
   }, [orders]);
 
   const active = useMemo(() => (activeId ? orders.find((o) => o.id === activeId) : null), [activeId, orders]);
@@ -109,16 +111,15 @@ export default function PesananPage() {
   return (
     <AdminLayout
       title="Monitoring Data Pesanan"
-      subtitle="Kelola seluruh data pesanan (dikemas/dikirim)"
+      subtitle="Kelola seluruh data pesanan pelanggan."
     >
       <Toaster richColors position="top-right" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
           { label: "Total Pesanan", value: stats.total, accent: "bg-primary/15 text-foreground" },
-          { label: "Baru", value: stats.baru, accent: "bg-chart-4/20 text-foreground" },
-          { label: "Dikemas", value: stats.dikemas, accent: "bg-success/15 text-foreground" },
-          { label: "Dikirim", value: stats.dikirim, accent: "bg-destructive/15 text-foreground" },
+          { label: "Belum Bayar", value: stats.belum_bayar, accent: "bg-chart-4/20 text-foreground" },
+          { label: "Sudah Bayar", value: stats.sudah_bayar, accent: "bg-success/20 text-foreground" },
         ].map((s) => (
           <Card key={s.label} className="p-5 border-border shadow-[var(--shadow-card)]">
             <div className="flex items-center justify-between">
@@ -143,7 +144,7 @@ export default function PesananPage() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari pemesan, alamat, produk, SKU..."
+              placeholder="Cari pemesan..."
               className="pl-9 bg-muted/40 border-0"
             />
           </div>
@@ -170,6 +171,8 @@ export default function PesananPage() {
                 <TableHead className="font-bold text-foreground">Alamat</TableHead>
                 <TableHead className="font-bold text-foreground">Produk</TableHead>
                 <TableHead className="font-bold text-foreground text-right">Total</TableHead>
+                <TableHead className="font-bold text-foreground text-right">Qty</TableHead>
+
                 <TableHead className="font-bold text-foreground">Tanggal</TableHead>
                 <TableHead className="font-bold text-foreground">Status</TableHead>
                 <TableHead className="font-bold text-foreground text-right">Aksi</TableHead>
@@ -201,6 +204,10 @@ export default function PesananPage() {
 
                   <TableCell className="text-right font-bold text-foreground">{formatRupiah(o.total)}</TableCell>
 
+                  <TableCell className="text-right font-semibold text-foreground">
+                    {o.items.reduce((acc, it) => acc + it.qty, 0)}
+                  </TableCell>
+
                   <TableCell className="text-muted-foreground">
                     <TruncatedText text={formatTanggal(o.tglPesan)} lines={1} />
                   </TableCell>
@@ -209,7 +216,7 @@ export default function PesananPage() {
 
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
-              <Dialog
+                      <Dialog
                         open={activeId === o.id}
                         onOpenChange={(open) => (open ? setActiveId(o.id) : clearActive())}
                       >
@@ -300,9 +307,7 @@ export default function PesananPage() {
                         </DialogContent>
                       </Dialog>
 
-                      <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" aria-label="Edit" onClick={() => {}}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
+
                     </div>
                   </TableCell>
                 </TableRow>

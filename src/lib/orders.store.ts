@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 
-export type OrderStatus = "Baru" | "Dikemas" | "Dikirim" | "Selesai";
+export type OrderStatus = "BelumBayar" | "SudahBayar";
 
 export interface OrderItem {
   productId?: string;
@@ -30,7 +30,7 @@ const seed: Order[] = [
     namaPemesan: "Budi Santoso",
     alamat: "Jl. Melati No. 12, Kel. Sukamaju, Kec. Cimanggis, Depok",
     noHp: "0812-3456-7890",
-    status: "Baru",
+    status: "BelumBayar",
     tglPesan: new Date(Date.now() - 1000 * 60 * 60 * 3).toISOString(),
     catatan: "Tolong hubungi sebelum sampai.",
     items: [
@@ -57,7 +57,7 @@ const seed: Order[] = [
     alamat:
       "Komplek Perumahan Harapan Indah Blok C/5, RT 03 RW 07, Bekasi Selatan",
     noHp: "0813-1111-2222",
-    status: "Dikemas",
+    status: "SudahBayar",
     tglPesan: new Date(Date.now() - 1000 * 60 * 60 * 26).toISOString(),
     items: [
       {
@@ -75,7 +75,7 @@ const seed: Order[] = [
     alamat:
       "Jl. Raya Bogor KM 20, Kel. Tanah Sereal, Kec. Bogor Barat, Kota Bogor",
     noHp: "0822-9999-0000",
-    status: "Dikirim",
+    status: "SudahBayar",
     tglPesan: new Date(Date.now() - 1000 * 60 * 60 * 50).toISOString(),
     catatan: "Pengiriman saat siang.",
     items: [

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus, Search, Pencil, Trash2, Package } from "lucide-react";
+import { Plus, Search, Pencil, Trash2, Package, Droplet } from "lucide-react";
 import { AdminLayout } from "@/src/components/admin/AdminLayout";
 import { Button } from "@/src/components/ui/button";
 import { Input } from "@/src/components/ui/input";
@@ -41,7 +41,6 @@ function statusBadge(s: Product["status"]) {
   const map: Record<Product["status"], string> = {
     Aktif: "bg-success/15 text-success-foreground border-success/30",
     Habis: "bg-destructive/15 text-destructive border-destructive/30",
-    Draft: "bg-muted text-muted-foreground border-border",
   };
   return (
     <Badge variant="outline" className={`${map[s]} font-medium`}>
@@ -186,7 +185,7 @@ export default function ProdukPage() {
                   <TableCell>
                     <div className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-lg bg-secondary flex items-center justify-center text-secondary-foreground">
-                        <Package className="h-5 w-5 text-primary" />
+                        <Droplet className="h-5 w-5 text-primary" />
                       </div>
                       <span className="font-semibold text-foreground">{p.name}</span>
                     </div>

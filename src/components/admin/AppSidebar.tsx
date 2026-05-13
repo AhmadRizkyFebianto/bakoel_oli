@@ -36,7 +36,6 @@ const mainItems = [
 
 const otherItems = [
   { title: "Pelanggan", url: "/dashboard/pelanggan", icon: Users },
-  { title: "Pengaturan", url: "/dashboard/pengaturan", icon: Settings },
 ];
 
 export function AppSidebar() {
