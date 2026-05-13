@@ -1,3 +1,4 @@
+.next/
 node_modules/
 build/
 dist/
@@ -6,3 +7,5 @@ coverage/
 *.log
 .env*
 !.env.example
+
+/src/generated/prisma
