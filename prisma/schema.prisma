@@ -20,7 +20,6 @@ model User {
   username    String   @unique
   jenis_motor String
   jenis_mesin String
-  role        String   @default("user")
   createdAt   DateTime @default(now())
 }
 model Product {
