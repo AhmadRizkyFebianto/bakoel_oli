@@ -31,7 +31,7 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
                 />
               </div>
             </div>
-            <div className="flex-1 md:flex-none" />
+            <div className="flex-1" />
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="h-5 w-5" />
               <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-primary" />
@@ -41,7 +41,7 @@ export function AdminLayout({ children, title, subtitle, actions }: AdminLayoutP
                 <span className="text-sm font-semibold text-foreground">Admin</span>
                 <span className="text-xs text-muted-foreground">admin@bakuloli.id</span>
               </div>
-              <div className="h-9 w-9 rounded-full bg-[var(--gradient-hero)] flex items-center justify-center text-secondary-foreground font-bold text-sm">
+              <div className="h-9 w-9 rounded-full bg-primary-foreground flex items-center justify-center text-white font-bold text-sm">
                 AD
               </div>
             </div>
