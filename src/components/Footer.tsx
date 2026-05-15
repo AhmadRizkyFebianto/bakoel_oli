@@ -1,6 +1,5 @@
 "use client";
 import { Clock, Building2 } from "lucide-react";
-import { Link } from "react-router-dom";
 
 export default function Footer() {
   return (
@@ -9,10 +8,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
           <div className="col-span-1 md:col-span-1 lg:col-span-1">
             <div className="flex items-center gap-2 mb-6">
-              <div className="w-8 h-8 bg-primary flex items-center justify-center rounded-lg">
-                <span className="font-display font-bold text-black">B</span>
-              </div>
-              <span className="font-display font-bold text-xl tracking-tighter">
+              <span className="font-display font-bold text-xl tracking-tighter text-brand-yellow">
                 BAKUL OLI
               </span>
             </div>
@@ -23,7 +19,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold text-lg mb-8 uppercase tracking-wider text-primary">
+            <h4 className="font-bold text-lg mb-8 uppercase tracking-wider text-brand-yellow">
               Navigasi
             </h4>
             <ul className="space-y-4 text-gray-400 font-medium">
@@ -56,7 +52,7 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold text-lg mb-8 uppercase tracking-wider text-primary">
+            <h4 className="font-bold text-lg mb-8 uppercase tracking-wider text-brand-yellow">
               Jam Kerja
             </h4>
             <ul className="space-y-4 text-gray-400">
@@ -72,13 +68,13 @@ export default function Footer() {
           </div>
 
           <div>
-            <h4 className="font-bold text-lg mb-8 uppercase tracking-wider text-primary">
+            <h4 className="font-bold text-lg mb-8 uppercase tracking-wider text-brand-yellow">
               Kontak
             </h4>
             <ul className="space-y-4 text-gray-400">
               <li className="flex gap-4">
                 <div className="flex-shrink-0 mt-1">
-                  <Building2 size={18} className="text-primary" />
+                  <Building2 size={18} className="text-brand-yellow" />
                 </div>
                 <span className="text-sm">
                   Jl. Raya Surabaya No. 123, Surabaya, Jawa Timur
@@ -86,7 +82,7 @@ export default function Footer() {
               </li>
               <li className="flex gap-4">
                 <div className="flex-shrink-0 mt-1">
-                  <Clock size={18} className="text-primary" />
+                  <Clock size={18} className="text-brand-yellow" />
                 </div>
                 <span className="text-sm">+62 31 123 4567</span>
               </li>
