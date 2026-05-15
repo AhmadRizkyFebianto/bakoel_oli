@@ -31,10 +31,26 @@ export default function Login() {
       );
 
       if (res.status >= 200 && res.status < 300) {
+        const role = res.data?.role;
+
         localStorage.setItem("isLoggedIn", "true");
-        localStorage.setItem("user", JSON.stringify({ email: email }));
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            email,
+            role,
+          }),
+        );
+
         window.dispatchEvent(new Event("storage"));
-        router.push("/");
+
+        // Redirect berdasarkan role
+        if (role === "admin") {
+          router.push("/dashboard");
+        } else {
+          router.push("/");
+        }
       }
     } catch (err: any) {
       const msg =

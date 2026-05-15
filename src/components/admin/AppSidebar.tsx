@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   Package,
@@ -42,9 +42,22 @@ export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const pathname = usePathname();
+  const router = useRouter();
 
   const isActive = (path: string) =>
     path === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(path);
+
+  const handleLogout = () => {
+    // hapus local storage
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("user");
+
+    // trigger update state/tab lain
+    window.dispatchEvent(new Event("storage"));
+
+    // redirect ke halaman utama
+    router.push("/");
+  };
 
   return (
     <Sidebar collapsible="icon" className="border-r-0">
@@ -107,7 +120,7 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton className="text-sidebar-foreground/80 hover:text-sidebar-foreground">
+            <SidebarMenuButton onClick={handleLogout} className="text-sidebar-foreground/80 hover:text-sidebar-foreground">
               <LogOut className="h-4 w-4" />
               {!collapsed && <span>Keluar</span>}
             </SidebarMenuButton>
