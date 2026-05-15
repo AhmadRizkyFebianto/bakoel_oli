@@ -91,7 +91,7 @@ export async function PUT(req: NextRequest) {
     }
     const decodedToken = jwt.verify(token, process.env.JWT_SECRET!);
     
-    if (password){
+    if (password !== ""){
         const hashedPassword = await bcrypt.hash(password, 10);
         await prisma.user.update({
             where: {
