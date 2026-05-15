@@ -40,7 +40,7 @@ export default function Products({ addToCart }: ProductsProps) {
           </>
         }
         description="Produk perawatan Bengkel Bakul Oli dirancang untuk menjaga performa motor Anda. Mulai dari oli mesin, filter, hingga pelumas khusus, semuanya berkualitas tinggi."
-        height="h-64"
+        height="h-[400px]"
       />
 
       <div className="container mx-auto px-6 py-12 flex-grow">
