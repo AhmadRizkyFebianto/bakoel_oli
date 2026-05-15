@@ -49,10 +49,14 @@ export async function POST(req: Request) {
         if (!isPasswordValid) {
             return NextResponse.json({ message: "Invalid password" }, { status: 401 });
         }
+        if (user.role === "admin") {
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: "1h" });
 
+            const response = NextResponse.json({ message: "User logged in successfully", role: user.role });
+        }
         const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: "1h" });
 
-        const response = NextResponse.json({ message: "User logged in successfully", user, token });
+        const response = NextResponse.json({ message: "User logged in successfully" });
 
         // set cookie
         response.cookies.set("token", token, {
