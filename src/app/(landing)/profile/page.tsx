@@ -1,10 +1,85 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CtaBanner from "../../../components/CtaBanner";
 import { FEATURED_PRODUCTS } from "@/src/data/products";
-import { div } from "motion/react-client";
+import axios from "axios";
+
+interface UserProfile {
+  username: string;
+  email: string;
+  jenis_motor?: string | null;
+  jenis_mesin?: string | null;
+}
+
+type UpdatePayload = {
+  password?: string;
+  jenis_motor?: string;
+  jenis_mesin?: string;
+};
 
 export default function Profile() {
+  const [profile, setProfile] = useState<UserProfile>({
+    username: "",
+    email: "",
+    jenis_motor: "",
+    jenis_mesin: "",
+  });
+  const [loadingProfile, setLoadingProfile] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  const fetchProfile = async () => {
+    setLoadingProfile(true);
+    setProfileError(null);
+
+    try {
+      const res = await axios.get("/api/user/update", {
+        withCredentials: true,
+      });
+
+      // Response: { user: {...} }
+      const user = res.data?.user;
+      setProfile({
+        username: user?.username ?? "Pelanggan",
+        email: user?.email ?? "tidakada@email.com",
+        jenis_motor: user?.jenis_motor ?? "",
+        jenis_mesin: user?.jenis_mesin ?? "",
+      });
+    } catch (err: any) {
+      setProfileError(
+        err?.response?.data?.message || "Gagal memuat data profile",
+      );
+      // fallback dari localStorage (agar UI tetap tampil)
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        try {
+          const parsedUser = JSON.parse(storedUser);
+          setProfile({
+            username: parsedUser.username || "Pelanggan",
+            email: parsedUser.email || "tidakada@email.com",
+            jenis_motor: parsedUser.jenis_motor ?? "",
+            jenis_mesin: parsedUser.jenis_mesin ?? "",
+          });
+        } catch {
+          // ignore
+        }
+      }
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfile();
+  }, []);
+
+  const initialForm = useMemo(
+    () => ({
+      jenisMotor: profile.jenis_motor ?? "",
+      jenisMesin: profile.jenis_mesin ?? "",
+    }),
+    [profile.jenis_motor, profile.jenis_mesin],
+  );
+
   return (
     <section className="relative min-h-screen">
       <div className="absolute inset-0 -z-10">
@@ -14,27 +89,41 @@ export default function Profile() {
           className="w-full h-full object-cover opacity-50"
         />
       </div>
+
       <div className="container mx-auto px-6 py-20 relative flex flex-col lg:flex-row space-x-20 space-y-20">
-        <ProfilePhoto />
-        <EditHistory />
+        <ProfilePhoto profile={profile} />
+        <EditHistory
+          key={`${profile.jenis_motor ?? ""}-${profile.jenis_mesin ?? ""}`}
+          initialJenisMotor={initialForm.jenisMotor}
+          initialJenisMesin={initialForm.jenisMesin}
+          onUpdated={fetchProfile}
+        />
       </div>
+
       <div className="mt-20">
         <CtaBanner />
       </div>
+
+      {loadingProfile ? null : profileError ? (
+        <div className="mt-6 text-center text-sm text-red-600 font-semibold">
+          {profileError}
+        </div>
+      ) : null}
     </section>
   );
 }
 
-function ProfilePhoto() {
+function ProfilePhoto({ profile }: { profile: UserProfile }) {
   const [isOpen, setIsOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
+
   const closeModal = () => {
     setIsOpen(false);
   };
 
   return (
     <>
-      <div className="bg-white p-8 shadow-lg w-full max-w-md h-[350px]">
+      <div className="bg-white p-8 shadow-lg w-full max-w-md h-[270px]">
         <div className="flex justify-center mb-6">
           <img
             src="/assets/profile.png"
@@ -43,61 +132,73 @@ function ProfilePhoto() {
           />
         </div>
         <div className="text-center">
-          <h3 className="text-2xl font-medium">Customer</h3>
-          <h4 className="text-lg">customer@gmail.com</h4>
+          <h3 className="text-2xl font-medium">{profile.username}</h3>
+          <h4 className="text-lg">{profile.email}</h4>
         </div>
-        <button
-          onClick={() => setIsOpen(true)}
-          className="w-full bg-brand-yellow py-3 rounded-lg font-bold mt-4 hover:brightness-105 transition-all"
-        >
-          Ubah Profile
-        </button>
       </div>
-      {isOpen && (
-        <div
-          className="min-h-screen w-screen fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md px-4"
-          onClick={closeModal}
-        >
-          <div className="bg-white w-full max-w-sm p-6 rounded-xl shadow-2xl">
-            <div className="flex justify-center mb-4">
-              {previewImage ? (
-                <img
-                  src={previewImage}
-                  alt="Preview"
-                  className="h-32 w-32 object-cover rounded-full border-2 border-gray-200"
-                />
-              ) : (
-                <div className="h-32 w-32 bg-gray-100 rounded-full flex items-center justify-center border-2 border-dashed border-gray-300">
-                  <span className="text-gray-400 text-sm">Preview</span>
-                </div>
-              )}
-            </div>
-            <input
-              type="file"
-              accept="image/*"
-              className="block w-full text-sm text-gray-500 mb-6
-                file:mr-4 file:py-2 file:px-4
-                file:rounded-lg file:border-0
-                file:text-sm file:font-semibold
-                file:bg-gray-100 file:text-gray-700
-                hover:file:bg-gray-200 transition-all cursor-pointer"
-            />
-            <button className="w-full bg-brand-yellow py-3 rounded-lg font-bold mt-4 hover:brightness-105 transition-all">
-              Simpan
-            </button>
-          </div>
-        </div>
-      )}
     </>
   );
 }
 
-function EditHistory() {
+function EditHistory({
+  initialJenisMotor,
+  initialJenisMesin,
+  onUpdated,
+}: {
+  initialJenisMotor: string;
+  initialJenisMesin: string;
+  onUpdated: () => Promise<void>;
+}) {
   const [activeTab, setActiveTab] = useState("profile");
   const [password, setPassword] = useState("");
   const [passwordBaru, setPasswordBaru] = useState("");
-  const [jenisMotor, setJenisMotor] = useState("");
-  const [jenisMesin, setJenisMesin] = useState("");
+  const [jenisMotor, setJenisMotor] = useState(initialJenisMotor);
+  const [jenisMesin, setJenisMesin] = useState(initialJenisMesin);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+
+  useEffect(() => {
+    setJenisMotor(initialJenisMotor);
+    setJenisMesin(initialJenisMesin);
+  }, [initialJenisMotor, initialJenisMesin]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSaving(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+
+    try {
+      const payload: UpdatePayload = {
+        password: passwordBaru ? passwordBaru : undefined,
+        jenis_motor: jenisMotor ? jenisMotor : undefined,
+        jenis_mesin: jenisMesin ? jenisMesin : undefined,
+      };
+
+      if (passwordBaru && passwordBaru !== password) {
+        throw new Error("Konfirmasi password tidak sesuai");
+      }
+
+      await axios.put("/api/user/update", payload, {
+        withCredentials: true,
+        headers: { "Content-Type": "application/json" },
+      });
+
+      setSaveSuccess("Data berhasil diperbarui");
+      setPassword("");
+      setPasswordBaru("");
+      await onUpdated();
+    } catch (err: any) {
+      setSaveError(
+        err?.response?.data?.message ||
+          err?.message ||
+          "Gagal memperbarui data",
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <div className="w-full">
@@ -133,10 +234,10 @@ function EditHistory() {
       <div className="bg-white p-8 shadow-lg w-full">
         {activeTab === "profile" && (
           <div className="">
-            <form className="space-y-6">
+            <form className="space-y-6" onSubmit={handleSubmit}>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Password
+                  Password Baru
                 </label>
                 <div className="relative">
                   <input
@@ -145,49 +246,71 @@ function EditHistory() {
                     className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    required
                   />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Password Baru
+                  Konfirmasi Password Baru
                 </label>
                 <div className="relative">
                   <input
                     type="password"
-                    placeholder="Masukan Password Baru......"
+                    placeholder="Masukan Konfirmasi Password Baru......"
                     className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
                     value={passwordBaru}
                     onChange={(e) => setPasswordBaru(e.target.value)}
-                    required
                   />
                 </div>
               </div>
 
+              {saveError ? (
+                <div className="text-sm text-red-600 font-semibold">
+                  {saveError}
+                </div>
+              ) : null}
+              {saveSuccess ? (
+                <div className="text-sm text-green-600 font-semibold">
+                  {saveSuccess}
+                </div>
+              ) : null}
+
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Jenis Motor
+                  Merk Motor
                 </label>
-                <div className="relative">
-                  <input
-                    type="jenismotor"
-                    placeholder="Masukan Jenis Motor......"
-                    className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
-                    value={jenisMotor}
-                    onChange={(e) => setJenisMotor(e.target.value)}
-                    required
-                  />
-                </div>
+                <select
+                  value={jenisMotor}
+                  onChange={(e) => setJenisMotor(e.target.value)}
+                  className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
+                  required
+                >
+                  <option value="" disabled>
+                    Pilih Merk Motor
+                  </option>
+                  <option value="honda">Honda</option>
+                  <option value="yamaha">Yamaha</option>
+                  <option value="suzuki">Suzuki</option>
+                  <option value="kawasaki">Kawasaki</option>
+                </select>
               </div>
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Jenis Mesin
                 </label>
-                <select className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer">
-                  <option>Pilih Jenis Mesin</option>
+                <select
+                  value={jenisMesin}
+                  onChange={(e) => setJenisMesin(e.target.value)}
+                  className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
+                  required
+                >
+                  <option value="" disabled>
+                    Pilih Jenis Mesin
+                  </option>
+                  <option value="matic">Matic</option>
+                  <option value="manual">Manual (Kopling/Gigi)</option>
                 </select>
               </div>
 
@@ -195,7 +318,7 @@ function EditHistory() {
                 type="submit"
                 className="w-full bg-brand-yellow text-brand-dark py-1.5 rounded-xl font-bold text-lg hover:brightness-105 transition-all shadow-lg mt-4 active:scale-[0.98]"
               >
-                Simpan
+                {saving ? "Menyimpan..." : "Simpan"}
               </button>
             </form>
           </div>

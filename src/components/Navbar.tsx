@@ -55,7 +55,7 @@ export default function Navbar({ cartCount }: NavbarProps) {
     setIsProfileOpen(false);
   }, [pathname]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("user");
     setIsLoggedIn(false);

@@ -32,6 +32,7 @@ export default function Login() {
 
       if (res.status >= 200 && res.status < 300) {
         const role = res.data?.role;
+        const username = res.data?.user?.username;
 
         localStorage.setItem("isLoggedIn", "true");
 
@@ -39,6 +40,7 @@ export default function Login() {
           "user",
           JSON.stringify({
             email,
+            username,
             role,
           }),
         );
