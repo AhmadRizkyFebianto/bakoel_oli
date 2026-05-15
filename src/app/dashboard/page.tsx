@@ -7,17 +7,18 @@ import { Card } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { formatRupiah, useProducts } from "@/src/lib/products.store";
+import { useUsers } from "@/src/hooks/useUsers";
 
 export default function DashboardPage() {
   const products = useProducts();
-  const totalStock = products.reduce((s, p) => s + p.stock, 0);
   const inventoryValue = products.reduce((s, p) => s + p.stock * p.price, 0);
+  const { totalUsers, loading } = useUsers();
 
   const stats = [
-    { label: "Total Pendapatan", value: "Rp 12.450.000", change: "+12,5%", icon: TrendingUp },
-    { label: "Pesanan Bulan Ini", value: "184", change: "+8,2%", icon: ShoppingCart },
-    { label: "Total Produk", value: products.length.toString(), change: `${totalStock} stok`, icon: Package },
-    { label: "Pelanggan Aktif", value: "1.247", change: "+5,1%", icon: Users },
+    { label: "Total Pendapatan", value: "Rp 12.450.000", icon: TrendingUp },
+    { label: "Pesanan Bulan Ini", value: "184", icon: ShoppingCart },
+    { label: "Total Produk", value: products.length.toString(), icon: Package },
+    { label: "Total Pelanggan", value: loading ? "..." : String(totalUsers), icon: Users },
   ];
 
   return (
@@ -71,7 +72,6 @@ export default function DashboardPage() {
                   {s.label}
                 </p>
                 <p className="text-2xl font-black mt-2 text-foreground">{s.value}</p>
-                <p className="text-xs text-success mt-1 font-semibold">{s.change}</p>
               </div>
               <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center">
                 <s.icon className="h-5 w-5 text-foreground" />
