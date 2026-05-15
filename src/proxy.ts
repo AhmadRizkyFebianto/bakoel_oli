@@ -24,5 +24,5 @@ export default function proxy(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/api/produk", "/api/produk/:path*"],
+    matcher: ["/api/produk", "/api/produk/:path*", "/api/user", "/api/user/:path*"],
 };
