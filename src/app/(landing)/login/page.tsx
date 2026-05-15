@@ -31,6 +31,9 @@ export default function Login() {
       );
 
       if (res.status >= 200 && res.status < 300) {
+        localStorage.setItem("isLoggedIn", "true");
+        localStorage.setItem("user", JSON.stringify({ email: email }));
+        window.dispatchEvent(new Event("storage"));
         router.push("/");
       }
     } catch (err: any) {

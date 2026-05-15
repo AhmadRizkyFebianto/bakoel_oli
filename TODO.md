@@ -1,4 +1,0 @@
-- [x] Update form login agar submit memanggil axios POST `/api/auth/login`
-- [x] Implement redirect ke `/` hanya saat response sukses
-- [x] Tambahkan handling error (tampilkan pesan di UI)
-- [ ] Jalankan project untuk memastikan login berfungsi dan redirect berjalan

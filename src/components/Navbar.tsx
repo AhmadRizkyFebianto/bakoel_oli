@@ -1,8 +1,16 @@
 "use client";
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { ShoppingCart, Search, Menu } from "lucide-react";
-import { usePathname } from "next/navigation";
+import {
+  ShoppingCart,
+  Search,
+  Menu,
+  User,
+  LogOut,
+  ChevronDown,
+} from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { div } from "motion/react-client";
 
 interface NavbarProps {
   cartCount: number;
@@ -19,18 +27,40 @@ const NAV_LINKS = [
 export default function Navbar({ cartCount }: NavbarProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
+
+  const checkLoginStatus = () => {
+    const loggedIn = localStorage.getItem("isLoggedIn") === "true";
+    setIsLoggedIn(loggedIn);
+  };
 
   useEffect(() => {
+    checkLoginStatus();
+
     const handleScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("storage", checkLoginStatus);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("storage", checkLoginStatus);
+    };
   }, []);
 
   // Close mobile menu on route change
   useEffect(() => {
     setIsMenuOpen(false);
+    setIsProfileOpen(false);
   }, [pathname]);
+
+  const handleLogout = () => {
+    localStorage.removeItem("isLoggedIn");
+    localStorage.removeItem("user");
+    setIsLoggedIn(false);
+    router.push("/");
+  };
 
   return (
     <nav
@@ -83,13 +113,82 @@ export default function Navbar({ cartCount }: NavbarProps) {
               </span>
             )}
           </Link>
+          <div className="relative">
+            {isLoggedIn ? (
+              <div className="hidden md:block relative">
+                <button
+                  onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  className="flex items-center gap-2 bg-gray-50 border border-gray-100 pl-2 pr-3 py-1.5 rounded-full hover:bg-gray-100 transition-all"
+                >
+                  <div className="w-8 h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark font-bold">
+                    <User className="w-5 h-5" />
+                  </div>
+                  <ChevronDown
+                    className={`w-4 h-4 text-gray-500 transition-transform ${isProfileOpen ? "rotate-180" : ""}`}
+                  />
+                </button>
 
-          <Link
-            href="/login"
-            className="hidden md:block bg-brand-yellow px-6 py-2 rounded-lg font-bold text-sm hover:brightness-105 shadow-sm text-brand-dark"
-          >
-            Masuk
-          </Link>
+                {/* Dropdown Menu */}
+                {isProfileOpen && (
+                  <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 overflow-hidden">
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    >
+                      <User className="w-4 h-4 text-gray-400" /> Profil Saya
+                    </Link>
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                    >
+                      <LogOut className="w-4 h-4" /> Keluar
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link
+                href="/login"
+                className="hidden md:block bg-brand-yellow px-6 py-2 rounded-lg font-bold text-sm hover:brightness-105 shadow-sm text-brand-dark"
+              >
+                Masuk
+              </Link>
+            )}
+          </div>
+
+          {isLoggedIn && (
+            <div className="relative md:hidden block">
+              <button
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 bg-gray-50 border border-gray-100 pl-2 pr-3 py-1.5 rounded-full hover:bg-gray-100 transition-all"
+              >
+                <div className="w-8 h-8 bg-brand-yellow rounded-full flex items-center justify-center text-brand-dark font-bold">
+                  <User className="w-5 h-5" />
+                </div>
+                <ChevronDown
+                  className={`w-4 h-4 text-gray-500 transition-transform ${isProfileOpen ? "rotate-180" : ""}`}
+                />
+              </button>
+
+              {/* Dropdown Menu */}
+              {isProfileOpen && (
+                <div className="absolute right-0 mt-3 w-48 bg-white rounded-2xl shadow-xl border border-gray-100 py-2 overflow-hidden">
+                  <Link
+                    href="/profile"
+                    className="flex items-center gap-3 px-4 py-3 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <User className="w-4 h-4 text-gray-400" /> Profil Saya
+                  </Link>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center gap-3 w-full text-left px-4 py-3 text-sm text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <LogOut className="w-4 h-4" /> Keluar
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
 
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -116,12 +215,14 @@ export default function Navbar({ cartCount }: NavbarProps) {
               {link.name}
             </Link>
           ))}
-          <Link
-            href="/login"
-            className="block w-full text-center bg-brand-yellow px-6 py-2 rounded-lg font-bold text-sm text-brand-dark mt-2"
-          >
-            Masuk
-          </Link>
+          {!isLoggedIn && (
+            <Link
+              href="/login"
+              className="block w-full text-center bg-brand-yellow px-6 py-2 rounded-lg font-bold text-sm text-brand-dark mt-2"
+            >
+              Masuk
+            </Link>
+          )}
         </div>
       )}
     </nav>
