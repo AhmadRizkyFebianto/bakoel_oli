@@ -4,6 +4,7 @@ import { ArrowLeft, Mail, Lock } from "lucide-react";
 import Link from "next/link";
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function Daftar() {
   const router = useRouter();
@@ -11,12 +12,52 @@ export default function Daftar() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [konfirmpassword, setKonfirmPassword] = useState("");
+  const [jenisMotor, setJenisMotor] = useState("");
+  const [jenisMesin, setJenisMesin] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Simulate login
-    console.log("Logging in with:", email, password);
-    router.push("/");
+
+    setErrorMessage(null);
+
+    if (password !== konfirmpassword) {
+      setErrorMessage("Konfirmasi password tidak sesuai.");
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const res = await axios.post(
+        "/api/auth/register",
+        {
+          username,
+          email,
+          password,
+          jenis_motor: jenisMotor,
+          jenis_mesin: jenisMesin,
+        },
+        {
+          headers: { "Content-Type": "application/json" },
+          withCredentials: true,
+        },
+      );
+
+      if (res.status >= 200 && res.status < 300) {
+        router.push("/login");
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Gagal daftar. Silakan coba lagi.";
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -26,22 +67,6 @@ export default function Daftar() {
         animate={{ opacity: 1, scale: 1 }}
         className="bg-white w-full max-w-5xl rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col md:flex-row h-auto md:h-[650px]"
       >
-        {/* Left Side - Brand Color */}
-        {/* <div className="w-full md:w-1/2 bg-brand-blue flex items-center justify-center p-12">
-          <div className="text-white text-center">
-            <div className="bg-white/10 p-6 rounded-full inline-block mb-6 backdrop-blur-sm">
-              <Lock className="w-16 h-16 text-brand-yellow" />
-            </div>
-            <h2 className="text-4xl font-bold mb-4 tracking-tight">
-              Bengkel Profesional
-            </h2>
-            <p className="text-blue-100 opacity-80">
-              Pelayanan terbaik untuk mesin kendaraan Anda dimulai dari sini.
-            </p>
-          </div>
-        </div> */}
-
-        {/* Right Side - Form */}
         <div className="w-full p-8 md:p-16 relative bg-white">
           <button
             onClick={() => router.push("/login")}
@@ -128,36 +153,56 @@ export default function Daftar() {
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="w-full md:w-1/2">
                   <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Jenis Motor
+                    Merk Motor
                   </label>
-                  <div className="relative">
-                    <input
-                      type="password"
-                      placeholder="Masukan Password......"
-                      className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                    />
-                  </div>
+                  <select
+                    value={jenisMotor}
+                    onChange={(e) => setJenisMotor(e.target.value)}
+                    className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
+                    required
+                  >
+                    <option value="" disabled>
+                      Pilih Merk Motor
+                    </option>
+                    <option value="honda">Honda</option>
+                    <option value="yamaha">Yamaha</option>
+                    <option value="suzuki">Suzuki</option>
+                    <option value="kawasaki">Kawasaki</option>
+                  </select>
                 </div>
 
                 <div className="w-full md:w-1/2">
                   <label className="block text-sm font-bold text-gray-700 mb-2">
                     Jenis Mesin
                   </label>
-                  <select className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer">
-                    <option>Pilih Jenis Mesin</option>
+                  <select
+                    value={jenisMesin}
+                    onChange={(e) => setJenisMesin(e.target.value)}
+                    className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
+                    required
+                  >
+                    <option value="" disabled>
+                      Pilih Jenis Mesin
+                    </option>
+                    <option value="matic">Matic</option>
+                    <option value="manual">Manual (Kopling/Gigi)</option>
                   </select>
                 </div>
               </div>
             </div>
 
+            {errorMessage ? (
+              <div className="text-sm text-red-600 font-semibold">
+                {errorMessage}
+              </div>
+            ) : null}
+
             <button
               type="submit"
-              className="w-full bg-brand-yellow text-brand-dark py-4 rounded-xl font-bold text-lg hover:brightness-105 transition-all shadow-lg mt-4 active:scale-[0.98]"
+              disabled={isLoading}
+              className="w-full bg-brand-yellow text-brand-dark py-4 rounded-xl font-bold text-lg hover:brightness-105 transition-all shadow-lg mt-4 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Daftar
+              {isLoading ? "Loading..." : "Daftar"}
             </button>
           </form>
 

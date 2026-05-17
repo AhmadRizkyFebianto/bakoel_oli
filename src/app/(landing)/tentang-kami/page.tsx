@@ -1,8 +1,8 @@
 "use client";
 import { motion, AnimatePresence } from "framer-motion";
 import { Zap, Settings, Wrench, Users } from "lucide-react";
-import PageBanner from "../../components/PageBanner";
-import CtaBanner from "../../components/CtaBanner";
+import PageBanner from "../../../components/PageBanner";
+import CtaBanner from "../../../components/CtaBanner";
 
 const FEATURES = [
   {

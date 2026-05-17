@@ -6,10 +6,10 @@ import {
   ChevronRight,
   ChevronLeft,
 } from "lucide-react";
-import { Product } from "../types";
-import { PRODUCTS } from "../../data/products";
-import ProductCard from "../../components/ProductCard";
-import PageBanner from "../../components/PageBanner";
+import { Product } from "../../types";
+import { PRODUCTS } from "../../../data/products";
+import ProductCard from "../../../components/ProductCard";
+import PageBanner from "../../../components/PageBanner";
 
 const CATEGORIES = [
   "Motor Matic",
@@ -31,7 +31,7 @@ export default function Products({ addToCart }: ProductsProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50 flex flex-col">
       <PageBanner
         title={
           <>
@@ -40,24 +40,11 @@ export default function Products({ addToCart }: ProductsProps) {
           </>
         }
         description="Produk perawatan Bengkel Bakul Oli dirancang untuk menjaga performa motor Anda. Mulai dari oli mesin, filter, hingga pelumas khusus, semuanya berkualitas tinggi."
-        height="h-64"
+        height="h-[400px]"
       />
 
-      <div className="container mx-auto px-6">
+      <div className="container mx-auto px-6 py-12 flex-grow">
         <div className="flex flex-col md:flex-row gap-8">
-          {/* Sidebar Filters */}
-          <aside className="w-full md:w-64 space-y-8">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h3 className="font-bold mb-6 flex items-center gap-2">
-                <SlidersHorizontal className="w-4 h-4" /> Filter
-              </h3>
-              <div className="space-y-6">
-                <FilterGroup label="Kategori" items={CATEGORIES} />
-                <FilterGroup label="Merek" items={BRANDS} />
-              </div>
-            </div>
-          </aside>
-
           {/* Main Content */}
           <div className="flex-grow space-y-8">
             {/* Search Bar */}
@@ -96,6 +83,24 @@ export default function Products({ addToCart }: ProductsProps) {
           </div>
         </div>
       </div>
+
+      {/* CTA Banner Section - di luar container, menyatu dengan footer */}
+      <div className="w-full bg-blue-600 min-h-[300px] py-10 px-8 md:px-16 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="text-left max-w-xl">
+          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
+            Temukan Layanan perawatan motor terbaik di Bengkel{" "}
+            <span className="text-brand-yellow">Bakul Oli</span>
+          </h2>
+          <p className="text-white text-sm leading-relaxed">
+            Temukan layanan perawatan motor profesional dan terpercaya di
+            Bengkel Bakul Oli. Dari ganti oli hingga tune-up lengkap, motor Anda
+            tetap prima dan aman dikendarai.
+          </p>
+        </div>
+        <button className="bg-brand-yellow text-blue-900 font-semibold px-8 py-4 rounded-full whitespace-nowrap hover:brightness-105 transition flex-shrink-0">
+          Lihat Layanan Kami
+        </button>
+      </div>
     </div>
   );
 }
@@ -128,7 +133,7 @@ function FilterGroup({ label, items }: { label: string; items: string[] }) {
 
 function Pagination() {
   return (
-    <div className="flex items-center justify-center gap-2 pt-12">
+    <div className="flex items-center justify-center gap-2 pt-12 pb-12">
       <button className="w-10 h-10 rounded-full flex items-center justify-center bg-gray-200 text-gray-600 hover:bg-brand-blue hover:text-white transition-colors">
         <ChevronLeft className="w-5 h-5" />
       </button>

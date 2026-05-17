@@ -1,10 +1,16 @@
 "use client";
 import type { Metadata } from "next";
-import "./globals.css";
+import "../globals.css";
 import { CartProvider } from "@/src/lib/CartContext";
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
-import { useCart } from "../hooks/useCart";
+
+import { Geist } from "next/font/google";
+import { cn } from "@/src/lib/utils";
+import { useCart } from "@/src/hooks/useCart";
+
+const geist = Geist({subsets:['latin'],variable:'--font-sans'});
+
 
 export default function RootLayout({
   children,
@@ -15,7 +21,7 @@ export default function RootLayout({
     useCart();
 
   return (
-    <html lang="id">
+    <html lang="id" className={cn("font-sans", geist.variable)}>
       <body>
         <CartProvider>
           <div className="flex flex-col min-h-screen">

@@ -1,7 +1,7 @@
 "use client";
 import { motion } from "framer-motion";
 import { Clock, Calendar, Users, Star } from "lucide-react";
-import PageBanner from "../../components/PageBanner";
+import PageBanner from "../../../components/PageBanner";
 
 const TRUST_ITEMS = [
   { icon: <Clock className="w-5 h-5" />, label: "Layanan Cepat" },
@@ -12,7 +12,7 @@ const TRUST_ITEMS = [
 
 export default function Services() {
   return (
-    <div className="min-h-screen bg-gray-50 pb-20">
+    <div className="min-h-screen bg-gray-50">
       <PageBanner
         title={
           <>
@@ -25,7 +25,7 @@ export default function Services() {
 
       <div className="container mx-auto px-6">
         {/* Section Header */}
-        <div className="text-center mb-16">
+        <div className="text-center mb-16 pt-16">
           <h2 className="text-3xl font-bold mb-4">
             Layanan yang kami sediakan
           </h2>
@@ -35,7 +35,7 @@ export default function Services() {
         {/* Service Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-5xl mx-auto mb-24">
           <ServiceCard
-            image="https://cdni.iconscout.com/illustration/premium/thumb/car-repair-at-home-4488737-3723275.png"
+            image="/assets/Rumah.png"
             alt="Home Service"
             title="Servis di Rumah"
             description="Mekanik handal kami siap datang langsung ke lokasi Anda (Rumah/Kantor). Tidak perlu repot keluar rumah, kami yang datang kepada Anda."
@@ -43,7 +43,7 @@ export default function Services() {
             buttonClass="bg-brand-blue text-white hover:brightness-110"
           />
           <ServiceCard
-            image="https://cdni.iconscout.com/illustration/premium/thumb/car-repair-shop-4488736-3723274.png"
+            image="/assets/Bengkel.png"
             alt="Workshop"
             title="Servis di Bengkel"
             description="Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda. Nikmati fasilitas bengkel yang lengkap dan modern."
@@ -51,42 +51,24 @@ export default function Services() {
             buttonClass="bg-brand-yellow text-brand-dark hover:brightness-105"
           />
         </div>
+      </div>
 
-        {/* Trust Section */}
-        <div className="bg-white rounded-[2.5rem] p-12 shadow-sm border border-gray-100 overflow-hidden relative">
-          <div className="absolute right-0 top-0 w-1/3 h-full bg-brand-yellow opacity-10 blur-3xl rounded-full translate-x-1/2 -translate-y-1/2" />
-          <div className="relative z-10 flex flex-col lg:flex-row items-center gap-12">
-            <div className="lg:w-1/2">
-              <h2 className="text-4xl font-bold mb-6">
-                Percayakan Perawatan mesin pada bengkel{" "}
-                <span className="text-brand-yellow">Bakul Oli</span>
-              </h2>
-              <p className="text-gray-500 text-lg mb-8">
-                Percayakan perawatan mesin kendaraan Anda pada Bengkel Bakul
-                Oli. Layanan profesional dengan teknisi berpengalaman dan oli
-                berkualitas untuk performa optimal.
-              </p>
-              <div className="grid grid-cols-2 gap-6">
-                {TRUST_ITEMS.map((item, i) => (
-                  <div key={i} className="flex items-center gap-3">
-                    <div className="bg-brand-yellow/20 p-2 rounded-lg text-brand-dark">
-                      {item.icon}
-                    </div>
-                    <span className="font-bold text-sm tracking-tight">
-                      {item.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="lg:w-1/2">
-              <img
-                src="https://images.unsplash.com/photo-1530046339160-ce3e5b0c7a2f?w=800&auto=format&fit=crop&q=80"
-                alt="Professional service"
-                className="rounded-3xl shadow-2xl"
-              />
-            </div>
-          </div>
+      {/* Trust Section - full width, menyatu dengan footer */}
+      <div className="w-full bg-blue-600 py-16 text-center">
+        <div className="flex flex-col items-center gap-6">
+          <h2 className="text-4xl font-bold text-white">
+            Percayakan Perawatan mesin pada bengkel{" "}
+            <span className="text-brand-yellow underline">Bakul Oli</span>
+          </h2>
+          <p className="text-white text-lg max-w-2xl">
+            Percayakan perawatan mesin kendaraan Anda pada Bengkel{" "}
+            <span className="text-brand-yellow">Bakul Oli</span>. Layanan
+            profesional dengan teknisi berpengalaman dan oli berkualitas untuk
+            performa optimal.
+          </p>
+          <button className="bg-brand-yellow text-blue-900 font-semibold px-10 py-4 rounded-full mt-2 hover:brightness-105 transition">
+            Lihat Produk Kami
+          </button>
         </div>
       </div>
     </div>

@@ -1,20 +1,68 @@
 "use client";
-import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, Mail, Lock } from "lucide-react";
+import { motion } from "framer-motion";
+import { ArrowLeft, Lock } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, FormEvent } from "react";
+import { FormEvent, useState } from "react";
+import axios from "axios";
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Simulate login
-    console.log("Logging in with:", email, password);
-    router.push("/");
+
+    setErrorMessage(null);
+    setIsLoading(true);
+
+    try {
+      const res = await axios.post(
+        "/api/auth/login",
+        { email, password },
+        {
+          headers: { "Content-Type": "application/json" },
+          // cookie token di-set oleh server (httpOnly), jadi kita tidak perlu baca token-nya di client
+          withCredentials: true,
+        },
+      );
+
+      if (res.status >= 200 && res.status < 300) {
+        const role = res.data?.role;
+        const username = res.data?.user?.username;
+
+        localStorage.setItem("isLoggedIn", "true");
+
+        localStorage.setItem(
+          "user",
+          JSON.stringify({
+            email,
+            username,
+            role,
+          }),
+        );
+
+        window.dispatchEvent(new Event("storage"));
+
+        // Redirect berdasarkan role
+        if (role === "admin") {
+          router.push("/dashboard");
+        } else {
+          router.push("/");
+        }
+      }
+    } catch (err: any) {
+      const msg =
+        err?.response?.data?.message ||
+        err?.message ||
+        "Gagal login. Silakan coba lagi.";
+      setErrorMessage(msg);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -89,11 +137,18 @@ export default function Login() {
               </div>
             </div>
 
+            {errorMessage ? (
+              <div className="text-sm text-red-600 font-semibold">
+                {errorMessage}
+              </div>
+            ) : null}
+
             <button
               type="submit"
-              className="w-full bg-brand-yellow text-brand-dark py-4 rounded-xl font-bold text-lg hover:brightness-105 transition-all shadow-lg mt-4 active:scale-[0.98]"
+              disabled={isLoading}
+              className="w-full bg-brand-yellow text-brand-dark py-4 rounded-xl font-bold text-lg hover:brightness-105 transition-all shadow-lg mt-4 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
             >
-              Masuk
+              {isLoading ? "Loading..." : "Masuk"}
             </button>
           </form>
 
