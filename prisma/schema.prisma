@@ -24,13 +24,15 @@ model User {
   createdAt   DateTime @default(now())
 }
 model Product {
-  id           String @id @default(cuid())
-  nama_product String @unique
-  sku          String @unique
-  kategori     String
-  harga        Int
-  stok         Int
-  status       String
-  deskripsi    String
-  createdAt    DateTime @default(now())
+  id              String @id @default(cuid())
+  nama_product    String @unique
+  jenis_oli       String
+  peruntukan      String
+  cc_motor        String
+  kekentalan_oli  String
+  harga           Int
+  stok            Int
+  deskripsi       String
+  image_url       String?
+  createdAt       DateTime @default(now())
 }
