@@ -7,12 +7,14 @@ interface PageBannerProps {
 export default function PageBanner({
   title,
   description,
-  height = 'h-64',
+  height = "h-64",
 }: PageBannerProps) {
   return (
-    <section className={`relative ${height} flex items-center overflow-hidden mb-12`}>
+    <section
+      className={`relative ${height} flex items-center overflow-hidden mb-12`}
+    >
       <img
-        src="https://images.unsplash.com/photo-1486262715619-67b85e0b08d3?w=1600&auto=format&fit=crop&q=80"
+        src="/assets/headerBG.png"
         className="absolute inset-0 w-full h-full object-cover brightness-[0.3]"
         alt="Banner"
       />
