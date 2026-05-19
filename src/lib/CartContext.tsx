@@ -1,58 +1,128 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { CartItem, Product } from '@/src/lib/types';
+import { createContext, useContext, useEffect, useState } from "react";
+
+interface CartItem {
+  id: string;
+  nama_product: string;
+  harga: number;
+  image_url: string;
+  jenis_oli: string;
+  peruntukan: string;
+  qty: number;
+}
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (id: string) => void;
-  updateQuantity: (id: string, delta: number) => void;
   cartCount: number;
+  animateCart: boolean;
+
+  addToCart: (product: CartItem) => void;
+  removeFromCart: (id: string) => void;
+  updateQuantity: (id: string, amount: number) => void;
+  clearCart: () => void;
 }
 
-const CartContext = createContext<CartContextType | undefined>(undefined);
+const CartContext = createContext<CartContextType | null>(null);
 
-export function CartProvider({ children }: { children: ReactNode }) {
+export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [animateCart, setAnimateCart] = useState(false);
 
-  const addToCart = (product: Product) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
+  // LOAD STORAGE
+  useEffect(() => {
+    const savedCart = localStorage.getItem("cart");
+
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
+  }, []);
+
+  // SAVE STORAGE
+  useEffect(() => {
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
+
+  // TOTAL ITEM
+  const cartCount = cart.reduce((acc, item) => acc + item.qty, 0);
+
+  // ADD TO CART
+  const addToCart = (product: CartItem) => {
+    setCart((prev) => {
+      const existing = prev.find((item) => item.id === product.id);
+
       if (existing) {
-        return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
+        return prev.map((item) =>
+          item.id === product.id
+            ? {
+                ...item,
+                qty: item.qty + 1,
+              }
+            : item,
+        );
       }
-      return [...prev, { ...product, quantity: 1 }];
+
+      return [...prev, product];
     });
+
+    // TRIGGER ANIMASI
+    setAnimateCart(true);
+
+    setTimeout(() => {
+      setAnimateCart(false);
+    }, 700);
   };
 
+  // REMOVE
   const removeFromCart = (id: string) => {
-    setCart(prev => prev.filter(item => item.id !== id));
+    setCart((prev) => prev.filter((item) => item.id !== id));
   };
 
-  const updateQuantity = (id: string, delta: number) => {
-    setCart(prev => prev.map(item => {
-      if (item.id === id) {
-        const newQty = Math.max(1, item.quantity + delta);
-        return { ...item, quantity: newQty };
-      }
-      return item;
-    }));
+  // UPDATE QTY
+  const updateQuantity = (id: string, amount: number) => {
+    setCart((prev) =>
+      prev
+        .map((item) =>
+          item.id === id
+            ? {
+                ...item,
+                qty: item.qty + amount,
+              }
+            : item,
+        )
+        .filter((item) => item.qty > 0),
+    );
   };
 
-  const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  // CLEAR
+  const clearCart = () => {
+    setCart([]);
+  };
 
   return (
-    <CartContext.Provider value={{ cart, addToCart, removeFromCart, updateQuantity, cartCount }}>
+    <CartContext.Provider
+      value={{
+        cart,
+        cartCount,
+        animateCart,
+
+        addToCart,
+        removeFromCart,
+        updateQuantity,
+        clearCart,
+      }}
+    >
       {children}
     </CartContext.Provider>
   );
-}
+};
 
-export function useCart() {
+export const useCart = () => {
   const context = useContext(CartContext);
-  if (context === undefined) {
-    throw new Error('useCart must be used within a CartProvider');
+
+  if (!context) {
+    throw new Error("useCart must be used inside CartProvider");
   }
+
   return context;
-}
+};
