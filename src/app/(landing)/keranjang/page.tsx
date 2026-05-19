@@ -227,13 +227,69 @@ export default function CartPage() {
 
               <button
                 disabled={selectedItems.length === 0}
+                onClick={async () => {
+                  try {
+                    // PRODUK YANG DICENTANG
+                    const selectedProducts = cart.filter((item) =>
+                      selectedItems.includes(item.id),
+                    );
+
+                    // REQUEST KE API MIDTRANS
+                    const response = await fetch("/api/transaction", {
+                      method: "POST",
+                      headers: {
+                        "Content-Type": "application/json",
+                      },
+
+                      body: JSON.stringify({
+                        items: selectedProducts,
+
+                        total: subtotal,
+
+                        name: "Ahmad Rizky",
+                        email: "user@gmail.com",
+                      }),
+                    });
+
+                    const data = await response.json();
+
+                    // OPEN MIDTRANS SNAP
+                    window.snap.pay(data.token, {
+                      onSuccess: function (result: any) {
+                        console.log(result);
+
+                        alert("Pembayaran berhasil");
+                      },
+
+                      onPending: function (result: any) {
+                        console.log(result);
+
+                        alert("Menunggu pembayaran");
+                      },
+
+                      onError: function (result: any) {
+                        console.log(result);
+
+                        alert("Pembayaran gagal");
+                      },
+
+                      onClose: function () {
+                        alert("Popup pembayaran ditutup");
+                      },
+                    });
+                  } catch (error) {
+                    console.log(error);
+
+                    alert("Terjadi kesalahan");
+                  }
+                }}
                 className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg active:scale-95 ${
                   selectedItems.length === 0
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-brand-yellow hover:brightness-105"
                 }`}
               >
-                Bayar
+                Bayar Sekarang
               </button>
             </div>
           </div>
