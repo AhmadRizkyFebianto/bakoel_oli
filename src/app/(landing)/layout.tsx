@@ -1,49 +1,41 @@
 "use client";
-import type { Metadata } from "next";
+
 import "../globals.css";
-import { CartProvider } from "@/src/lib/CartContext";
+
+import { Geist } from "next/font/google";
+import Script from "next/script";
+
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
 
-import { Geist } from "next/font/google";
-import { cn } from "@/src/lib/utils";
-import { useCart } from "@/src/hooks/useCart";
+import { CartProvider } from "@/src/lib/CartContext";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
+const geist = Geist({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  const { cart, cartCount, addToCart, removeFromCart, updateQuantity } =
-    useCart();
-
+}) {
   return (
-    <html lang="id" className={cn("font-sans", geist.variable)}>
+    <html lang="id" className={geist.variable}>
       <body>
         <CartProvider>
-          <div className="flex flex-col min-h-screen">
-            <Navbar cartCount={cartCount} />
-            <main className="flex-grow pt-20">{children}</main>
-            <Footer />
+          {/* MIDTRANS SNAP */}
+          <Script
+            src="https://app.sandbox.midtrans.com/snap/snap.js"
+            data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
+            strategy="beforeInteractive"
+          />
 
-            {/* WhatsApp Floating Button */}
-            <a
-              href="https://wa.me/628123456789"
-              target="_blank"
-              rel="no-referrer"
-              className="fixed bottom-6 right-6 z-50 bg-[#25D366] text-white p-3 rounded-full shadow-lg hover:scale-110 transition-transform"
-              id="whatsapp-btn"
-            >
-              <img
-                src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg"
-                alt="WhatsApp"
-                className="w-8 h-8"
-              />
-            </a>
-          </div>
+          <Navbar />
+
+          <main className="pt-24">{children}</main>
+
+          <Footer />
         </CartProvider>
       </body>
     </html>

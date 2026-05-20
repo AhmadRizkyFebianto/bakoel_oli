@@ -11,12 +11,12 @@ import { useUsers } from "@/src/hooks/useUsers";
 
 export default function DashboardPage() {
   const products = useProducts();
-  const inventoryValue = products.reduce((s, p) => s + p.stock * p.price, 0);
+  const inventoryValue = products.reduce((s, p) => s + p.stok * p.harga, 0);
   const { totalUsers, loading } = useUsers();
 
   const stats = [
-    { label: "Total Pendapatan", value: "Rp 12.450.000", icon: TrendingUp },
-    { label: "Pesanan Bulan Ini", value: "184", icon: ShoppingCart },
+    { label: "Total Pendapatan", value: "Belum ada real pemesanan ya bang!", icon: TrendingUp },
+    { label: "Pesanan Bulan Ini", value: "Belum ada real pesanan bang!", icon: ShoppingCart },
     { label: "Total Produk", value: products.length.toString(), icon: Package },
     { label: "Total Pelanggan", value: loading ? "..." : String(totalUsers), icon: Users },
   ];
@@ -49,15 +49,9 @@ export default function DashboardPage() {
           </p>
           <div className="flex gap-3 mt-6">
             <Button asChild>
-              <Link href="/produk">
+              <Link href="/dashboard/produk">
                 Kelola Produk <ArrowUpRight className="h-4 w-4" />
               </Link>
-            </Button>
-            <Button
-              variant="outline"
-              className="bg-transparent border-primary/40 text-primary-foreground hover:bg-primary hover:text-primary-foreground"
-            >
-              Lihat Laporan
             </Button>
           </div>
         </div>
@@ -88,26 +82,37 @@ export default function DashboardPage() {
             <p className="text-sm text-muted-foreground">Daftar singkat produk di katalog.</p>
           </div>
           <Button variant="outline" asChild>
-            <Link href="/produk">Lihat semua</Link>
+            <Link href="/dashboard/produk">Lihat semua</Link>
           </Button>
         </div>
         <div className="divide-y divide-border">
           {products.slice(0, 5).map((p) => (
             <div key={p.id} className="flex items-center gap-4 p-4 hover:bg-muted/40 transition-colors">
-              <div className="h-11 w-11 rounded-lg bg-secondary flex items-center justify-center">
-                <Package className="h-5 w-5 text-primary" />
-              </div>
+              {p.image_url ? (
+                <img
+                  src={p.image_url}
+                  alt={p.nama_product}
+                  className="h-11 w-11 rounded-lg object-cover border border-border"
+                  loading="lazy"
+                />
+              ) : (
+                <div className="h-11 w-11 rounded-lg bg-secondary flex items-center justify-center">
+                  <Package className="h-5 w-5 text-primary" />
+                </div>
+              )}
+
               <div className="flex-1 min-w-0">
-                <p className="font-semibold text-foreground truncate">{p.name}</p>
+                <p className="font-semibold text-foreground truncate">{p.nama_product}</p>
                 <p className="text-xs text-muted-foreground">
-                  {p.category} · SKU {p.sku}
+                  {p.jenis_oli} · {p.cc_motor}
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-bold text-foreground">{formatRupiah(p.price)}</p>
-                <p className="text-xs text-muted-foreground">Stok: {p.stock}</p>
+                <p className="font-bold text-foreground">{formatRupiah(p.harga)}</p>
+                <p className="text-xs text-muted-foreground">Stok: {p.stok}</p>
               </div>
             </div>
+
           ))}
         </div>
       </Card>
