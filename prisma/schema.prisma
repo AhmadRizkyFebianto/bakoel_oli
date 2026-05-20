@@ -22,7 +22,10 @@ model User {
   jenis_mesin String
   role        String   @default("user")
   createdAt   DateTime @default(now())
+  orders      Order[]  // Relasi ke tabel Order
+  cart        Cart?
 }
+
 model Product {
   id              String @id @default(cuid())
   nama_product    String @unique
@@ -35,4 +38,50 @@ model Product {
   deskripsi       String
   image_url       String?
   createdAt       DateTime @default(now())
+  orderItems      OrderItem[] // Relasi ke tabel OrderItem
+  cartItems       CartItem[]
+}
+
+model Order {
+  id          String      @id @default(cuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  total       Int
+  status      String      @default("BelumBayar") // "BelumBayar", "SudahBayar", "Batal"
+  snapToken   String?     // Token transaksi Midtrans Snap
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(cuid())
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId String
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Int      // Harga saat dibeli (untuk riwayat jika harga produk berubah)
+}
+
+model Cart {
+  id        String     @id @default(cuid())
+  userId    String     @unique
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items     CartItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model CartItem {
+  id        String   @id @default(cuid())
+  cartId    String
+  cart      Cart     @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  quantity  Int      @default(1)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([cartId, productId])
 }
