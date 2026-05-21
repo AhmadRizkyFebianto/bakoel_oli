@@ -201,17 +201,18 @@ export default function ProductCard() {
                 }`}
                 onClick={() => {
                   addToCart({
-                    ...product,
+                    productId: product.id,
+                    nama_product: product.nama_product,
+                    harga: product.harga,
+                    image_url: product.image_url,
+                    jenis_oli: product.jenis_oli,
+                    peruntukan: product.peruntukan,
                     qty: 1,
                   });
 
                   setAddedId(product.id);
-
-                  setTimeout(() => {
-                    setAddedId(null);
-                  }, 1000);
-
-                  console.log("Produk ditambahkan:", product);
+                  setTimeout(() => setAddedId(null), 1000);
+                  // console.log("Produk ditambahkan:", product);
                 }}
               >
                 <AnimatePresence mode="wait">
