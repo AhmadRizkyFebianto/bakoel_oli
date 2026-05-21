@@ -305,43 +305,51 @@ export default function CartPage() {
                 disabled={selectedItems.length === 0}
                 onClick={async () => {
                   try {
-                    const selectedProducts = cart.filter((item) =>
-                      selectedItems.includes(item.id),
-                    );
-
-                    const response = await fetch("/api/transaction", {
+                    const response = await fetch("/api/checkout", {
                       method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        items: selectedProducts,
-                        total: subtotal,
-                        name: "Ahmad Rizky",
-                        email: "user@gmail.com",
-                      }),
                     });
+
+                    if (!response.ok) {
+                      throw new Error("Checkout gagal");
+                    }
 
                     const data = await response.json();
 
-                    window.snap.pay(data.token, {
+                    if (!window.snap) {
+                      alert("Midtrans Snap belum dimuat");
+                      return;
+                    }
+
+                    window.snap.pay(data.snapToken, {
                       onSuccess: function (result: any) {
                         console.log(result);
+
                         alert("Pembayaran berhasil");
+
+                        // optional refresh cart
+                        window.location.reload();
                       },
+
                       onPending: function (result: any) {
                         console.log(result);
+
                         alert("Menunggu pembayaran");
                       },
+
                       onError: function (result: any) {
                         console.log(result);
+
                         alert("Pembayaran gagal");
                       },
+
                       onClose: function () {
                         alert("Popup pembayaran ditutup");
                       },
                     });
                   } catch (error) {
                     console.log(error);
-                    alert("Terjadi kesalahan");
+
+                    alert("Terjadi kesalahan saat checkout");
                   }
                 }}
                 className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg active:scale-95 ${
