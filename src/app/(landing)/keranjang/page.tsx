@@ -6,14 +6,14 @@ import Link from "next/link";
 import { useCart } from "@/src/lib/CartContext";
 
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, clearCart } = useCart();
+  const { cart, removeFromCart, updateQuantity, clearCart, loading } =
+    useCart();
 
   // =========================
   // CHECKBOX STATE
   // =========================
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
 
-  // otomatis pilih semua saat pertama load
   useEffect(() => {
     setSelectedItems((prev) =>
       prev.filter((id) => cart.some((item) => item.id === id)),
@@ -52,6 +52,93 @@ export default function CartPage() {
     .reduce((acc, item) => acc + item.harga * item.qty, 0);
 
   // =========================
+  // LOADING STATE
+  // =========================
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 pb-20 pt-12 animate-pulse">
+        <div className="container mx-auto px-6">
+          {/* TITLE */}
+          <div className="h-10 w-56 bg-gray-200 rounded mb-12" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* LEFT */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* HEADER */}
+              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-gray-200 rounded" />
+                  <div className="h-4 w-40 bg-gray-200 rounded" />
+                </div>
+
+                <div className="h-4 w-24 bg-gray-200 rounded" />
+              </div>
+
+              {/* SKELETON ITEMS */}
+              {Array.from({ length: 3 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6"
+                >
+                  {/* CHECKBOX */}
+                  <div className="w-6 h-6 bg-gray-200 rounded shrink-0" />
+
+                  {/* IMAGE */}
+                  <div className="w-24 h-24 bg-gray-200 rounded-xl shrink-0" />
+
+                  {/* INFO */}
+                  <div className="flex-grow space-y-3 w-full">
+                    <div className="h-5 w-52 bg-gray-200 rounded" />
+
+                    <div className="h-3 w-32 bg-gray-200 rounded" />
+
+                    <div className="h-3 w-28 bg-gray-200 rounded" />
+
+                    <div className="flex items-center gap-2 pt-3">
+                      <div className="h-9 w-28 bg-gray-200 rounded-lg" />
+                    </div>
+                  </div>
+
+                  {/* PRICE */}
+                  <div className="flex flex-col items-end gap-4">
+                    <div className="h-6 w-32 bg-gray-200 rounded" />
+
+                    <div className="flex gap-3">
+                      <div className="h-10 w-10 bg-gray-200 rounded-lg" />
+                      <div className="h-10 w-24 bg-gray-200 rounded-lg" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* RIGHT */}
+            <div className="lg:col-span-1">
+              <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 space-y-8">
+                <div className="h-6 w-52 bg-gray-200 rounded" />
+
+                <div className="space-y-4">
+                  <div className="flex justify-between">
+                    <div className="h-4 w-28 bg-gray-200 rounded" />
+                    <div className="h-4 w-10 bg-gray-200 rounded" />
+                  </div>
+
+                  <div className="flex justify-between items-center pb-6 border-b border-gray-100">
+                    <div className="h-5 w-20 bg-gray-200 rounded" />
+                    <div className="h-8 w-40 bg-gray-200 rounded" />
+                  </div>
+                </div>
+
+                <div className="h-14 w-full bg-gray-200 rounded-2xl" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // =========================
   // EMPTY STATE
   // =========================
   if (cart.length === 0) {
@@ -60,13 +147,10 @@ export default function CartPage() {
         <div className="w-48 h-48 bg-gray-100 rounded-full flex items-center justify-center">
           <Trash2 className="w-20 h-20 text-gray-300" />
         </div>
-
         <h2 className="text-2xl font-bold">Keranjang Anda Kosong</h2>
-
         <p className="text-gray-500">
           Belum ada produk perawatan yang ditambahkan ke keranjang.
         </p>
-
         <Link
           href="/produk"
           className="bg-brand-blue text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 transition-all"
@@ -88,7 +172,6 @@ export default function CartPage() {
             {/* HEADER */}
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                {/* CHECKBOX ALL */}
                 <button
                   onClick={toggleSelectAll}
                   className={`w-6 h-6 rounded flex items-center justify-center transition-all border-2 ${
@@ -99,12 +182,10 @@ export default function CartPage() {
                 >
                   {isAllSelected && <Check className="w-4 h-4" />}
                 </button>
-
                 <span className="font-bold">
                   Pilih Semua ({selectedItems.length})
                 </span>
               </div>
-
               <button
                 onClick={clearCart}
                 className="text-red-500 font-bold hover:underline"
@@ -149,27 +230,27 @@ export default function CartPage() {
                     {/* INFO */}
                     <div className="flex-grow space-y-1 text-center sm:text-left">
                       <h4 className="font-bold text-lg">{item.nama_product}</h4>
-
                       <p className="text-xs text-gray-400">{item.jenis_oli}</p>
-
                       <p className="text-xs text-gray-400">{item.peruntukan}</p>
 
                       {/* QUANTITY */}
                       <div className="flex items-center justify-center sm:justify-start gap-4 pt-4">
                         <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
                           <button
-                            onClick={() => updateQuantity(item.id, -1)}
+                            onClick={() =>
+                              updateQuantity(item.id, item.qty - 1)
+                            }
                             className="px-3 py-1 hover:bg-gray-100"
                           >
                             -
                           </button>
-
                           <span className="px-4 py-1 text-sm font-bold border-x border-gray-200">
                             {item.qty}
                           </span>
-
                           <button
-                            onClick={() => updateQuantity(item.id, 1)}
+                            onClick={() =>
+                              updateQuantity(item.id, item.qty + 1)
+                            }
                             className="px-3 py-1 hover:bg-gray-100"
                           >
                             +
@@ -183,7 +264,6 @@ export default function CartPage() {
                       <span className="text-xl font-extrabold text-brand-blue">
                         Rp. {(item.harga * item.qty).toLocaleString("id-ID")}
                       </span>
-
                       <div className="flex items-center gap-3">
                         {/* DELETE */}
                         <button
@@ -192,7 +272,6 @@ export default function CartPage() {
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
-
                         {/* DETAIL */}
                         <button className="bg-brand-yellow text-brand-dark px-6 py-2 rounded-lg font-bold text-sm hover:brightness-105 transition-all">
                           Detail
@@ -209,16 +288,13 @@ export default function CartPage() {
           <div className="lg:col-span-1">
             <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 sticky top-32 space-y-8">
               <h3 className="text-xl font-bold">Ringkasan Belanja</h3>
-
               <div className="space-y-4">
                 <div className="flex justify-between text-gray-600">
                   <span>Produk Dipilih</span>
                   <span>{selectedItems.length}</span>
                 </div>
-
                 <div className="flex justify-between items-center pb-6 border-b border-gray-100 text-gray-600">
                   <span>Total</span>
-
                   <span className="text-2xl font-extrabold text-brand-blue">
                     Rp. {subtotal.toLocaleString("id-ID")}
                   </span>
@@ -229,58 +305,55 @@ export default function CartPage() {
                 disabled={selectedItems.length === 0}
                 onClick={async () => {
                   try {
-                    // PRODUK YANG DICENTANG
-                    const selectedProducts = cart.filter((item) =>
-                      selectedItems.includes(item.id),
-                    );
+                    // ambil productId dari item yang dicentang
+                    const selectedProductIds = cart
+                      .filter((item) => selectedItems.includes(item.id))
+                      .map((item) => item.id);
 
-                    // REQUEST KE API MIDTRANS
-                    const response = await fetch("/api/transaction", {
+                    console.log("=== CHECKOUT itemIds ===", selectedProductIds);
+
+                    const response = await fetch("/api/checkout", {
                       method: "POST",
-                      headers: {
-                        "Content-Type": "application/json",
-                      },
-
+                      headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
-                        items: selectedProducts,
-
-                        total: subtotal,
-
-                        name: "Ahmad Rizky",
-                        email: "user@gmail.com",
+                        itemIds: selectedProductIds,
                       }),
                     });
 
+                    if (!response.ok) {
+                      throw new Error("Checkout gagal");
+                    }
+
                     const data = await response.json();
 
-                    // OPEN MIDTRANS SNAP
-                    window.snap.pay(data.token, {
+                    console.log("=== CHECKOUT RESPONSE ===", data);
+
+                    if (!window.snap) {
+                      alert("Midtrans Snap belum dimuat");
+                      return;
+                    }
+
+                    window.snap.pay(data.snapToken, {
                       onSuccess: function (result: any) {
                         console.log(result);
-
                         alert("Pembayaran berhasil");
+                        window.location.reload();
                       },
-
                       onPending: function (result: any) {
                         console.log(result);
-
                         alert("Menunggu pembayaran");
                       },
-
                       onError: function (result: any) {
                         console.log(result);
-
                         alert("Pembayaran gagal");
                       },
-
                       onClose: function () {
                         alert("Popup pembayaran ditutup");
                       },
                     });
                   } catch (error) {
                     console.log(error);
-
-                    alert("Terjadi kesalahan");
+                    alert("Terjadi kesalahan saat checkout");
                   }
                 }}
                 className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg active:scale-95 ${
