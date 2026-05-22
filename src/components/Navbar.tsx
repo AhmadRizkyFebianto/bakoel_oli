@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { name: "Tentang Kami", path: "/tentang-kami" },
   { name: "Produk", path: "/produk" },
   { name: "Layanan", path: "/layanan" },
-  { name: "Kontak", path: "#" },
+  { name: "Kontak", path: "/kontak" },
 ];
 
 export default function Navbar() {
