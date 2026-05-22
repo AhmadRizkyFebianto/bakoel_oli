@@ -73,7 +73,7 @@ export async function GET (request:NextRequest){
     if (!token){
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET!);
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
     const user = await prisma.user.findUnique({
         where: {
             id: decodedToken.id,
@@ -89,7 +89,7 @@ export async function PUT(req: NextRequest) {
     if (!token){
         return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
-    const decodedToken = jwt.verify(token, process.env.JWT_SECRET!);
+    const decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
     
     if (password !== ""){
         const hashedPassword = await bcrypt.hash(password, 10);

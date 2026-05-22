@@ -31,7 +31,6 @@ const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Produk", url: "/dashboard/produk", icon: Package },
   { title: "Pesanan", url: "/dashboard/pesanan", icon: ShoppingCart },
-  { title: "Pembukuan", url: "/dashboard/pembukuan", icon: BookText },
 ];
 
 export function AppSidebar() {

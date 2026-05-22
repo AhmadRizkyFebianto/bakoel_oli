@@ -81,7 +81,6 @@ export default function About() {
           </div>
         </div>
       </section>
-
       <CtaBanner />
     </div>
   );
