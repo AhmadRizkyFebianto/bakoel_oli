@@ -8,6 +8,19 @@ import jwt from "jsonwebtoken";
  *   post:
  *     summary: Process checkout using user's cart and get Midtrans Snap Token
  *     tags: [Checkout]
+ *     requestBody:
+ *       required: false
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               itemIds:
+ *                 type: array
+ *                 items:
+ *                   type: string
+ *                 description: Optional list of cart item IDs to checkout. If not provided or empty, the entire cart will be checked out.
+ *                 example: ["cm39mxl1p0001xyz", "cm39mxl1p0002abc"]
  *     responses:
  *       201:
  *         description: Order created successfully
@@ -32,6 +45,17 @@ export async function POST(req: NextRequest) {
         const decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
         const userId = decodedToken.id;
 
+        // Parse optional itemIds from request body
+        let selectedItemIds: string[] = [];
+        try {
+            const body = await req.json();
+            if (body && Array.isArray(body.itemIds)) {
+                selectedItemIds = body.itemIds;
+            }
+        } catch (e) {
+            // Body might be empty, which is fine
+        }
+
         // Get user's cart
         const cart = await prisma.cart.findUnique({
             where: { userId },
@@ -46,8 +70,17 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Keranjang belanja kosong" }, { status: 400 });
         }
 
+        // Filter items if specific itemIds are provided
+        const itemsToCheckout = selectedItemIds.length > 0 
+            ? cart.items.filter(item => selectedItemIds.includes(item.id))
+            : cart.items;
+
+        if (itemsToCheckout.length === 0) {
+            return NextResponse.json({ message: "Item yang dipilih tidak ditemukan di keranjang" }, { status: 400 });
+        }
+
         let total = 0;
-        const orderItemsData = cart.items.map(item => {
+        const orderItemsData = itemsToCheckout.map(item => {
             total += item.product.harga * item.quantity;
             return {
                 productId: item.productId,
@@ -85,9 +118,11 @@ export async function POST(req: NextRequest) {
                 }
             });
 
-            // Delete cart items after successful checkout
+            // Delete selected cart items after successful checkout
             await tx.cartItem.deleteMany({
-                where: { cartId: cart.id }
+                where: { 
+                    id: { in: itemsToCheckout.map(item => item.id) }
+                }
             });
 
             return newOrder;
