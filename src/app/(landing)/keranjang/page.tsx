@@ -305,8 +305,19 @@ export default function CartPage() {
                 disabled={selectedItems.length === 0}
                 onClick={async () => {
                   try {
+                    // ambil productId dari item yang dicentang
+                    const selectedProductIds = cart
+                      .filter((item) => selectedItems.includes(item.id))
+                      .map((item) => item.id);
+
+                    console.log("=== CHECKOUT itemIds ===", selectedProductIds);
+
                     const response = await fetch("/api/checkout", {
                       method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({
+                        itemIds: selectedProductIds,
+                      }),
                     });
 
                     if (!response.ok) {
@@ -314,6 +325,8 @@ export default function CartPage() {
                     }
 
                     const data = await response.json();
+
+                    console.log("=== CHECKOUT RESPONSE ===", data);
 
                     if (!window.snap) {
                       alert("Midtrans Snap belum dimuat");
@@ -323,32 +336,23 @@ export default function CartPage() {
                     window.snap.pay(data.snapToken, {
                       onSuccess: function (result: any) {
                         console.log(result);
-
                         alert("Pembayaran berhasil");
-
-                        // optional refresh cart
                         window.location.reload();
                       },
-
                       onPending: function (result: any) {
                         console.log(result);
-
                         alert("Menunggu pembayaran");
                       },
-
                       onError: function (result: any) {
                         console.log(result);
-
                         alert("Pembayaran gagal");
                       },
-
                       onClose: function () {
                         alert("Popup pembayaran ditutup");
                       },
                     });
                   } catch (error) {
                     console.log(error);
-
                     alert("Terjadi kesalahan saat checkout");
                   }
                 }}
