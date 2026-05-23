@@ -98,6 +98,12 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "User tidak ditemukan" }, { status: 404 });
         }
 
+        if (!user.alamat || !user.nomor_hp || user.alamat.trim() === "" || user.nomor_hp.trim() === "") {
+            return NextResponse.json({ 
+                message: "Silakan lengkapi alamat dan nomor telepon Anda di halaman profil terlebih dahulu sebelum melakukan checkout." 
+            }, { status: 400 });
+        }
+
         // Create Order and OrderItems in a transaction, and delete cart items
         const order = await prisma.$transaction(async (tx) => {
             const newOrder = await tx.order.create({
@@ -144,7 +150,8 @@ export async function POST(req: NextRequest) {
             },
             customer_details: {
                 first_name: user.username,
-                email: user.email
+                email: user.email,
+                phone: user.nomor_hp || undefined
             },
             item_details: order.items.map(item => ({
                 id: item.productId,

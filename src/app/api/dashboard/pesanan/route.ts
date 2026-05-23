@@ -55,7 +55,9 @@ export async function GET(req: NextRequest) {
                         username: true,
                         email: true,
                         jenis_motor: true,
-                        jenis_mesin: true
+                        jenis_mesin: true,
+                        nomor_hp: true,
+                        alamat: true
                     }
                 },
                 items: {
@@ -84,11 +86,11 @@ export async function GET(req: NextRequest) {
             const cityIndex = username.charCodeAt(0) % cities.length;
             const districtIndex = username.charCodeAt(username.length - 1) % districts.length;
             const streetNum = (username.length * 7) % 88 + 1;
-            const address = `Jl. Merdeka No. ${streetNum}, Kel. ${districts[districtIndex]}, ${cities[cityIndex]}`;
+            const address = orderUser.alamat || `Jl. Merdeka No. ${streetNum}, Kel. ${districts[districtIndex]}, ${cities[cityIndex]}`;
             
             // Consistent hashing for realistic phone number
             const phoneHash = (orderUser.id.charCodeAt(0) + orderUser.id.charCodeAt(orderUser.id.length - 1)) % 9000 + 1000;
-            const noHp = `0812-3456-${phoneHash}`;
+            const noHp = orderUser.nomor_hp || `0812-3456-${phoneHash}`;
 
             // Map items
             const mappedItems = order.items.map((item) => {

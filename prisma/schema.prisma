@@ -20,6 +20,8 @@ model User {
   username    String   @unique
   jenis_motor String
   jenis_mesin String
+  nomor_hp    String?
+  alamat      String?
   role        String   @default("user")
   createdAt   DateTime @default(now())
   orders      Order[]  // Relasi ke tabel Order
