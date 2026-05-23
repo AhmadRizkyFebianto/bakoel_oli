@@ -155,7 +155,7 @@ export default function Navbar() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.2 }}
                   /* Class 'absolute right-0 mt-2' memaksa kotak ini melayang tepat di bawah tombol sebelah kanan */
-                  className="absolute right-0 mt-3 w-72 sm:w-80 bg-white p-3 rounded-2xl shadow-xl border border-gray-100 flex items-center gap-2 z-50 animate-in fade-in zoom-in-95"
+                  className="absolute -right-12 mt-3 w-72 sm:w-80 bg-white p-3 rounded-2xl shadow-xl border border-gray-100 flex items-center gap-2 z-50 animate-in fade-in zoom-in-95"
                 >
                   <input
                     type="text"

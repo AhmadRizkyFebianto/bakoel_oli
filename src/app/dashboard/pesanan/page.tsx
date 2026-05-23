@@ -161,7 +161,7 @@ export default function PesananPage() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari pemesan..."
+              placeholder="Cari pemesan, produk, dsb..."
               className="pl-9 bg-muted/40 border-0"
             />
           </div>
@@ -185,7 +185,7 @@ export default function PesananPage() {
             <TableHeader>
               <TableRow className="bg-muted/30 hover:bg-muted/30">
                 <TableHead className="font-bold text-foreground">Nama Pemesan</TableHead>
-                <TableHead className="font-bold text-foreground">Alamat</TableHead>
+                {/* <TableHead className="font-bold text-foreground">Alamat</TableHead> */}
                 <TableHead className="font-bold text-foreground">Produk</TableHead>
                 <TableHead className="font-bold text-foreground text-right">Total</TableHead>
                 <TableHead className="font-bold text-foreground text-right">Qty</TableHead>
@@ -218,9 +218,9 @@ export default function PesananPage() {
                     <TruncatedText text={o.namaPemesan} lines={1} />
                   </TableCell>
 
-                  <TableCell className="min-w-56">
+                  {/* <TableCell className="min-w-56">
                     <TruncatedText text={o.alamat} lines={1} />
-                  </TableCell>
+                  </TableCell> */}
 
                   <TableCell className="min-w-56">
                     <TruncatedText text={joinItems(o.items)} lines={1} />
@@ -285,15 +285,6 @@ export default function PesananPage() {
                                 <p className="font-semibold text-foreground">Tanggal</p>
                               </div>
                               <p className="text-sm text-muted-foreground">{formatTanggal(o.tglPesan)}</p>
-
-                              {o.catatan && (
-                                <div className="mt-4">
-                                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                                    Catatan
-                                  </p>
-                                  <p className="text-sm text-muted-foreground mt-1">{o.catatan}</p>
-                                </div>
-                              )}
                             </Card>
 
                             <Card className="border-border shadow-[var(--shadow-card)] p-4">

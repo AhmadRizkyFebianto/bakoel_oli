@@ -150,6 +150,8 @@ function EditHistory({
   onUpdated: () => Promise<void>;
 }) {
   const [activeTab, setActiveTab] = useState("profile");
+  const [noHp, setNoHp] = useState("");
+  const [alamat, setAlamat] = useState("");
   const [password, setPassword] = useState("");
   const [passwordBaru, setPasswordBaru] = useState("");
   const [jenisMotor, setJenisMotor] = useState(initialJenisMotor);
@@ -235,6 +237,36 @@ function EditHistory({
         {activeTab === "profile" && (
           <div className="">
             <form className="space-y-6" onSubmit={handleSubmit}>
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  No. Handphone
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    placeholder="Masukan No. Handphone......"
+                    className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
+                    value={noHp}
+                    onChange={(e) => setNoHp(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Alamat
+                </label>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Masukan Alamat......"
+                    className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
+                    value={alamat}
+                    onChange={(e) => setAlamat(e.target.value)}
+                  />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
                   Password Baru

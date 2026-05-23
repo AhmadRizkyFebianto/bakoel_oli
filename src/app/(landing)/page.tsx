@@ -102,7 +102,7 @@ function HeroSection() {
           </p>
           <div className="flex flex-col gap-4">
             <Link
-              href="/layanan"
+              href="https://www.google.com/maps?q=-7.2255,112.7667"
               className="w-[230px] bg-brand-yellow text-brand-dark px-8 py-3 rounded-lg font-bold hover:scale-105 transition-all shadow-lg flex items-center gap-2"
             >
               Lihat Lokasi Kami <ChevronRight className="w-5 h-5" />
