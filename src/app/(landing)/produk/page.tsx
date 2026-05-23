@@ -7,6 +7,7 @@ import { useCart } from "@/src/lib/CartContext";
 import PageBanner from "../../../components/PageBanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface Product {
   id: string;
@@ -152,78 +153,86 @@ export default function ProductCard() {
             {/* Product Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
               {currentProducts.map((product) => (
-                <motion.div
+                <Link
                   key={product.id}
-                  whileHover={{ y: -8 }}
-                  transition={{ type: "spring", stiffness: 200 }}
-                  className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 p-6 flex flex-col items-center text-center overflow-hidden"
+                  href={`/detail-produk/${product.id}`}
+                  className="block"
                 >
-                  {/* Product Image */}
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className="w-32 h-32 mb-5 flex items-center justify-center"
+                    whileHover={{ y: -8 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                    className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 p-6 flex flex-col items-center text-center overflow-hidden cursor-pointer"
                   >
-                    <img
-                      src={product.image_url || "/placeholder.jpg"}
-                      alt={product.nama_product}
-                      className="w-full h-full object-contain"
-                    />
+                    {/* Product Image */}
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      className="w-32 h-32 mb-5 flex items-center justify-center"
+                    >
+                      <img
+                        src={product.image_url || "/placeholder.jpg"}
+                        alt={product.nama_product}
+                        className="w-full h-full object-contain"
+                      />
+                    </motion.div>
+
+                    {/* Product Name */}
+                    <h3 className="text-2xl font-bold text-gray-800 leading-tight">
+                      {product.nama_product}
+                    </h3>
+
+                    {/* Subtitle */}
+                    <p className="text-sm text-gray-400 mt-2">
+                      Untuk Motor {product.peruntukan}
+                    </p>
+
+                    {/* Price */}
+                    <div className="mt-4 text-3xl font-extrabold text-blue-700">
+                      Rp. {(product.harga ?? 0).toLocaleString("id-ID")}
+                    </div>
+
+                    {/* Add To Cart */}
+                    <motion.button
+                      whileTap={{ scale: 0.92 }}
+                      whileHover={{ scale: 1.03 }}
+                      animate={
+                        addedId === product.id ? { scale: [1, 1.1, 1] } : {}
+                      }
+                      transition={{ duration: 0.4 }}
+                      className={`mt-6 px-8 py-3 rounded-full font-bold w-full transition-all duration-300 ${
+                        addedId === product.id
+                          ? "bg-green-500 text-white"
+                          : "bg-yellow-400 text-black hover:brightness-105"
+                      }`}
+                      onClick={(e) => {
+                        e.preventDefault(); // supaya tidak redirect ketika klik button
+                        handleAddCart(product);
+                      }}
+                    >
+                      <AnimatePresence mode="wait">
+                        {addedId === product.id ? (
+                          <motion.span
+                            key="success"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="flex items-center justify-center gap-2"
+                          >
+                            ✓ Ditambahkan
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            key="default"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                          >
+                            Tambah Keranjang
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
                   </motion.div>
-
-                  {/* Product Name */}
-                  <h3 className="text-2xl font-bold text-gray-800 leading-tight">
-                    {product.nama_product}
-                  </h3>
-
-                  {/* Subtitle */}
-                  <p className="text-sm text-gray-400 mt-2">
-                    Untuk Motor {product.peruntukan}
-                  </p>
-
-                  {/* Price */}
-                  <div className="mt-4 text-3xl font-extrabold text-blue-700">
-                    Rp. {(product.harga ?? 0).toLocaleString("id-ID")}
-                  </div>
-
-                  {/* Add To Cart */}
-                  <motion.button
-                    whileTap={{ scale: 0.92 }}
-                    whileHover={{ scale: 1.03 }}
-                    animate={
-                      addedId === product.id ? { scale: [1, 1.1, 1] } : {}
-                    }
-                    transition={{ duration: 0.4 }}
-                    className={`mt-6 px-8 py-3 rounded-full font-bold w-full transition-all duration-300 ${
-                      addedId === product.id
-                        ? "bg-green-500 text-white"
-                        : "bg-yellow-400 text-black hover:brightness-105"
-                    }`}
-                    onClick={() => handleAddCart(product)}
-                  >
-                    <AnimatePresence mode="wait">
-                      {addedId === product.id ? (
-                        <motion.span
-                          key="success"
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0 }}
-                          className="flex items-center justify-center gap-2"
-                        >
-                          ✓ Ditambahkan
-                        </motion.span>
-                      ) : (
-                        <motion.span
-                          key="default"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                        >
-                          Tambah Keranjang
-                        </motion.span>
-                      )}
-                    </AnimatePresence>
-                  </motion.button>
-                </motion.div>
+                </Link>
               ))}
             </div>
 
