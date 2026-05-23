@@ -6,6 +6,7 @@ import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "@/src/lib/CartContext";
 import PageBanner from "../../../components/PageBanner";
 import { motion, AnimatePresence } from "framer-motion";
+import { useRouter } from "next/navigation";
 
 interface Product {
   id: string;
@@ -33,6 +34,7 @@ export default function ProductCard() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
   const [addedId, setAddedId] = useState<string | null>(null);
+  const router = useRouter();
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -57,6 +59,27 @@ export default function ProductCard() {
 
     fetchProducts();
   }, []);
+
+  const handleAddCart = (product: Product) => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    addToCart({
+      productId: product.id,
+      nama_product: product.nama_product,
+      harga: product.harga,
+      image_url: product.image_url,
+      jenis_oli: product.jenis_oli,
+      peruntukan: product.peruntukan,
+      qty: 1,
+    });
+    setAddedId(product.id);
+    setTimeout(() => setAddedId(null), 1000);
+  };
 
   // Search Filter
   const filteredProducts = useMemo(() => {
@@ -175,19 +198,7 @@ export default function ProductCard() {
                         ? "bg-green-500 text-white"
                         : "bg-yellow-400 text-black hover:brightness-105"
                     }`}
-                    onClick={() => {
-                      addToCart({
-                        productId: product.id,
-                        nama_product: product.nama_product,
-                        harga: product.harga,
-                        image_url: product.image_url,
-                        jenis_oli: product.jenis_oli,
-                        peruntukan: product.peruntukan,
-                        qty: 1,
-                      });
-                      setAddedId(product.id);
-                      setTimeout(() => setAddedId(null), 1000);
-                    }}
+                    onClick={() => handleAddCart(product)}
                   >
                     <AnimatePresence mode="wait">
                       {addedId === product.id ? (
