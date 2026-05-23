@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import axios from "axios";
 import { Search, Package, Info, Phone, MapPin, CalendarDays } from "lucide-react";
 
 import { AdminLayout } from "@/src/components/admin/AdminLayout";
@@ -33,7 +34,7 @@ import {
 } from "@/src/components/ui/dialog";
 import { Toaster } from "@/src/components/ui/sonner";
 
-import { useOrders, type Order, type OrderStatus, formatRupiah, formatTanggal } from "@/src/lib/orders.store";
+import { type Order, type OrderStatus, formatRupiah, formatTanggal } from "@/src/lib/orders.store";
 
 function statusBadge(s: OrderStatus) {
   const map: Record<OrderStatus, string> = {
@@ -73,11 +74,27 @@ function joinItems(items: Order["items"]) {
 }
 
 export default function PesananPage() {
-  const orders = useOrders();
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<OrderStatus | "Semua">("Semua");
   const [activeId, setActiveId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchOrders() {
+      try {
+        setLoading(true);
+        const res = await axios.get("/api/dashboard/pesanan");
+        setOrders(res.data.orders);
+      } catch (err) {
+        console.error("Gagal mengambil data pesanan:", err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchOrders();
+  }, []);
 
   const statuses = useMemo(
     () => ["Semua", "Belum Bayar", "Sudah Bayar"] as const,
@@ -180,15 +197,22 @@ export default function PesananPage() {
             </TableHeader>
 
             <TableBody>
-              {filtered.length === 0 && (
+              {loading ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell colSpan={8} className="text-center py-12">
+                    <div className="flex flex-col items-center justify-center gap-3">
+                      <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
+                      <p className="text-sm text-muted-foreground animate-pulse">Memuat data pesanan real-time...</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filtered.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
                     Tidak ada pesanan ditemukan.
                   </TableCell>
                 </TableRow>
-              )}
-
-              {filtered.map((o) => (
+              ) : filtered.map((o) => (
                 <TableRow key={o.id} className="hover:bg-muted/30">
                   <TableCell className="min-w-44">
                     <TruncatedText text={o.namaPemesan} lines={1} />

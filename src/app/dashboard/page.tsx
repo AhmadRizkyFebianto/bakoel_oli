@@ -1,24 +1,65 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import axios from "axios";
 import { Package, ShoppingCart, TrendingUp, Users, ArrowUpRight, Plus } from "lucide-react";
 import { AdminLayout } from "@/src/components/admin/AdminLayout";
 import { Card } from "@/src/components/ui/card";
 import { Button } from "@/src/components/ui/button";
 import { Badge } from "@/src/components/ui/badge";
 import { formatRupiah, useProducts } from "@/src/lib/products.store";
-import { useUsers } from "@/src/hooks/useUsers";
+
+interface DashboardStats {
+  totalPendapatan: number;
+  pesananBulanIni: number;
+  totalProduk: number;
+  totalPelanggan: number;
+  nilaiInventaris: number;
+}
 
 export default function DashboardPage() {
   const products = useProducts();
-  const inventoryValue = products.reduce((s, p) => s + p.stok * p.harga, 0);
-  const { totalUsers, loading } = useUsers();
+  const [statsData, setStatsData] = useState<DashboardStats | null>(null);
+  const [statsLoading, setStatsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchStats() {
+      try {
+        const res = await axios.get("/api/dashboard/summary");
+        setStatsData(res.data);
+      } catch (err) {
+        console.error("Gagal mengambil statistik dashboard:", err);
+      } finally {
+        setStatsLoading(false);
+      }
+    }
+    fetchStats();
+  }, []);
+
+  const inventoryValue = statsData ? statsData.nilaiInventaris : products.reduce((s, p) => s + p.stok * p.harga, 0);
 
   const stats = [
-    { label: "Total Pendapatan", value: "Belum ada real pemesanan ya bang!", icon: TrendingUp },
-    { label: "Pesanan Bulan Ini", value: "Belum ada real pesanan bang!", icon: ShoppingCart },
-    { label: "Total Produk", value: products.length.toString(), icon: Package },
-    { label: "Total Pelanggan", value: loading ? "..." : String(totalUsers), icon: Users },
+    { 
+      label: "Total Pendapatan", 
+      value: statsLoading ? "..." : formatRupiah(statsData?.totalPendapatan ?? 0), 
+      icon: TrendingUp 
+    },
+    { 
+      label: "Pesanan Bulan Ini", 
+      value: statsLoading ? "..." : String(statsData?.pesananBulanIni ?? 0), 
+      icon: ShoppingCart 
+    },
+    { 
+      label: "Total Produk", 
+      value: statsLoading ? String(products.length) : String(statsData?.totalProduk ?? products.length), 
+      icon: Package 
+    },
+    { 
+      label: "Total Pelanggan", 
+      value: statsLoading ? "..." : String(statsData?.totalPelanggan ?? 0), 
+      icon: Users 
+    },
   ];
 
   return (
@@ -56,6 +97,7 @@ export default function DashboardPage() {
           </div>
         </div>
       </Card>
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {stats.map((s) => (
