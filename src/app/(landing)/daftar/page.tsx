@@ -153,11 +153,39 @@ export default function Daftar() {
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="w-full md:w-1/2">
                   <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Merk Motor
+                    Jenis Motor
                   </label>
                   <select
                     value={jenisMotor}
                     onChange={(e) => setJenisMotor(e.target.value)}
+                    className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
+                    required
+                  >
+                    <option value="" disabled>
+                      Pilih Jenis Motor
+                    </option>
+                    <option value="motor matic">Motor Matic</option>
+                    <option value="motor matic premium">
+                      Motor Matic Premium
+                    </option>
+                    <option value="motor sport">Motor Sport</option>
+                    <option value="motor sport premium">
+                      Motor Sport Premium
+                    </option>
+                    <option value="motor bebek">Motor Bebek</option>
+                    <option value="motor bebek lama">Motor Bebek Lama</option>
+                    <option value="motor 2 tak">Motor 2 Tak</option>
+                    <option value="motor harian">Motor Harian</option>
+                  </select>
+                </div>
+
+                <div className="w-full md:w-1/2">
+                  <label className="block text-sm font-bold text-gray-700 mb-2">
+                    Merk Motor
+                  </label>
+                  <select
+                    value={jenisMesin}
+                    onChange={(e) => setJenisMesin(e.target.value)}
                     className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
                     required
                   >
@@ -168,24 +196,6 @@ export default function Daftar() {
                     <option value="yamaha">Yamaha</option>
                     <option value="suzuki">Suzuki</option>
                     <option value="kawasaki">Kawasaki</option>
-                  </select>
-                </div>
-
-                <div className="w-full md:w-1/2">
-                  <label className="block text-sm font-bold text-gray-700 mb-2">
-                    Jenis Mesin
-                  </label>
-                  <select
-                    value={jenisMesin}
-                    onChange={(e) => setJenisMesin(e.target.value)}
-                    className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
-                    required
-                  >
-                    <option value="" disabled>
-                      Pilih Jenis Mesin
-                    </option>
-                    <option value="matic">Matic</option>
-                    <option value="manual">Manual (Kopling/Gigi)</option>
                   </select>
                 </div>
               </div>

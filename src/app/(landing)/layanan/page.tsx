@@ -54,7 +54,8 @@ export default function Services() {
       </div>
 
       {/* Trust Section - full width, menyatu dengan footer */}
-      <div className="w-full bg-blue-600 py-16 text-center">
+      <div className="w-full bg-brand-blue relative py-16 text-center">
+        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
         <div className="flex flex-col items-center gap-6">
           <h2 className="text-4xl font-bold text-white">
             Percayakan Perawatan mesin pada bengkel{" "}
@@ -97,8 +98,8 @@ function ServiceCard({
       whileHover={{ y: -10 }}
       className="bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100 flex flex-col items-center text-center group"
     >
-      <div className="w-56 h-56 mb-8 overflow-hidden">
-        <img src={image} alt={alt} className="w-full object-contain" />
+      <div className="w-96 h-48 mb-8 overflow-hidden">
+        <img src={image} alt={alt} className="w-96 h-48" />
       </div>
       <h3 className="text-3xl font-bold mb-4">{title}</h3>
       <p className="text-gray-500 mb-10 text-sm leading-relaxed">

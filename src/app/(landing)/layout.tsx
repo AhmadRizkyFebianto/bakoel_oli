@@ -7,6 +7,7 @@ import Script from "next/script";
 
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
+import WhatsAppButton from "@/src/components/WhatsAppButton";
 
 import { CartProvider } from "@/src/lib/CartContext";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
           <main className="pt-24">{children}</main>
 
           <Footer />
+          <WhatsAppButton />
         </CartProvider>
       </body>
     </html>
