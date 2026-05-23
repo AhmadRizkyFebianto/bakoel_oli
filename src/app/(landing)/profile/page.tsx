@@ -9,9 +9,13 @@ interface UserProfile {
   email: string;
   jenis_motor?: string | null;
   jenis_mesin?: string | null;
+  nomor_hp?: string | null;
+  alamat?: string | null;
 }
 
 type UpdatePayload = {
+  alamat?: string;
+  nomor_hp?: string;
   password?: string;
   jenis_motor?: string;
   jenis_mesin?: string;
@@ -23,6 +27,8 @@ export default function Profile() {
     email: "",
     jenis_motor: "",
     jenis_mesin: "",
+    nomor_hp: "",
+    alamat: "",
   });
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -43,6 +49,8 @@ export default function Profile() {
         email: user?.email ?? "tidakada@email.com",
         jenis_motor: user?.jenis_motor ?? "",
         jenis_mesin: user?.jenis_mesin ?? "",
+        nomor_hp: user?.nomor_hp ?? "",
+        alamat: user?.alamat ?? "",
       });
     } catch (err: any) {
       setProfileError(
@@ -58,6 +66,8 @@ export default function Profile() {
             email: parsedUser.email || "tidakada@email.com",
             jenis_motor: parsedUser.jenis_motor ?? "",
             jenis_mesin: parsedUser.jenis_mesin ?? "",
+            nomor_hp: parsedUser.nomor_hp ?? "",
+            alamat: parsedUser.alamat ?? "",
           });
         } catch {
           // ignore
@@ -76,8 +86,15 @@ export default function Profile() {
     () => ({
       jenisMotor: profile.jenis_motor ?? "",
       jenisMesin: profile.jenis_mesin ?? "",
+      noHp: profile.nomor_hp ?? "",
+      alamat: profile.alamat ?? "",
     }),
-    [profile.jenis_motor, profile.jenis_mesin],
+    [
+      profile.jenis_motor,
+      profile.jenis_mesin,
+      profile.nomor_hp,
+      profile.alamat,
+    ],
   );
 
   return (
@@ -93,9 +110,11 @@ export default function Profile() {
       <div className="container mx-auto px-6 py-20 relative flex flex-col lg:flex-row space-x-20 space-y-20">
         <ProfilePhoto profile={profile} />
         <EditHistory
-          key={`${profile.jenis_motor ?? ""}-${profile.jenis_mesin ?? ""}`}
+          key={`${profile.jenis_motor ?? ""}-${profile.jenis_mesin ?? ""}-${profile.nomor_hp ?? ""}-${profile.alamat ?? ""}`}
           initialJenisMotor={initialForm.jenisMotor}
           initialJenisMesin={initialForm.jenisMesin}
+          initialNoHp={initialForm.noHp}
+          initialAlamat={initialForm.alamat}
           onUpdated={fetchProfile}
         />
       </div>
@@ -143,17 +162,29 @@ function ProfilePhoto({ profile }: { profile: UserProfile }) {
 function EditHistory({
   initialJenisMotor,
   initialJenisMesin,
+  initialNoHp,
+  initialAlamat,
   onUpdated,
 }: {
   initialJenisMotor: string;
   initialJenisMesin: string;
+  initialNoHp: string;
+  initialAlamat: string;
   onUpdated: () => Promise<void>;
 }) {
   const [activeTab, setActiveTab] = useState("profile");
-  const [noHp, setNoHp] = useState("");
-  const [alamat, setAlamat] = useState("");
+  const [noHp, setNoHp] = useState(initialNoHp ?? "");
+  const [alamat, setAlamat] = useState(initialAlamat ?? "");
+
+  useEffect(() => {
+    setNoHp(initialNoHp ?? "");
+    setAlamat(initialAlamat ?? "");
+  }, [initialNoHp, initialAlamat]);
+
   const [password, setPassword] = useState("");
   const [passwordBaru, setPasswordBaru] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPasswordBaru, setShowPasswordBaru] = useState(false);
   const [jenisMotor, setJenisMotor] = useState(initialJenisMotor);
   const [jenisMesin, setJenisMesin] = useState(initialJenisMesin);
   const [saving, setSaving] = useState(false);
@@ -173,13 +204,21 @@ function EditHistory({
 
     try {
       const payload: UpdatePayload = {
-        password: passwordBaru ? passwordBaru : undefined,
+        password: passwordBaru ? passwordBaru : "",
         jenis_motor: jenisMotor ? jenisMotor : undefined,
         jenis_mesin: jenisMesin ? jenisMesin : undefined,
+        nomor_hp: noHp ? noHp : undefined,
+        alamat: alamat ? alamat : undefined,
       };
 
-      if (passwordBaru && passwordBaru !== password) {
-        throw new Error("Konfirmasi password tidak sesuai");
+      // Jika user tidak mengisi password baru, maka backend tidak akan mengubah password (tetap password lama)
+      if (passwordBaru) {
+        if (!password) {
+          throw new Error("Masukan password lama untuk konfirmasi");
+        }
+        if (passwordBaru !== password) {
+          throw new Error("Konfirmasi password tidak sesuai");
+        }
       }
 
       await axios.put("/api/user/update", payload, {
@@ -243,7 +282,7 @@ function EditHistory({
                 </label>
                 <div className="relative">
                   <input
-                    type="number"
+                    type="text"
                     placeholder="Masukan No. Handphone......"
                     className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
                     value={noHp}
@@ -273,12 +312,56 @@ function EditHistory({
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     placeholder="Masukan Password......"
                     className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute mt-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none select-none"
+                  >
+                    {showPassword ? (
+                      // Ikon Mata Terbuka (Mengintip)
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-6 h-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                        />
+                      </svg>
+                    ) : (
+                      // Ikon Mata Tertutup (Sembunyi)
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-6 h-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"
+                        />
+                      </svg>
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -288,12 +371,56 @@ function EditHistory({
                 </label>
                 <div className="relative">
                   <input
-                    type="password"
+                    type={showPasswordBaru ? "text" : "password"}
                     placeholder="Masukan Konfirmasi Password Baru......"
                     className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
                     value={passwordBaru}
                     onChange={(e) => setPasswordBaru(e.target.value)}
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPasswordBaru(!showPasswordBaru)}
+                    className="absolute mt-4 right-4 text-gray-500 hover:text-gray-700 focus:outline-none select-none"
+                  >
+                    {showPasswordBaru ? (
+                      // Ikon Mata Terbuka (Mengintip)
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-6 h-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z"
+                        />
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z"
+                        />
+                      </svg>
+                    ) : (
+                      // Ikon Mata Tertutup (Sembunyi)
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        strokeWidth={1.5}
+                        stroke="currentColor"
+                        className="w-6 h-6"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88"
+                        />
+                      </svg>
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -310,11 +437,39 @@ function EditHistory({
 
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Merk Motor
+                  Jenis Motor
                 </label>
                 <select
                   value={jenisMotor}
                   onChange={(e) => setJenisMotor(e.target.value)}
+                  className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
+                  required
+                >
+                  <option value="" disabled>
+                    Pilih Jenis Motor
+                  </option>
+                  <option value="motor matic">Motor Matic</option>
+                  <option value="motor matic premium">
+                    Motor Matic Premium
+                  </option>
+                  <option value="motor sport">Motor Sport</option>
+                  <option value="motor sport premium">
+                    Motor Sport Premium
+                  </option>
+                  <option value="motor bebek">Motor Bebek</option>
+                  <option value="motor bebek lama">Motor Bebek Lama</option>
+                  <option value="motor 2 tak">Motor 2 Tak</option>
+                  <option value="motor harian">Motor Harian</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-bold text-gray-700 mb-2">
+                  Merk Motor
+                </label>
+                <select
+                  value={jenisMesin}
+                  onChange={(e) => setJenisMesin(e.target.value)}
                   className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
                   required
                 >
@@ -325,24 +480,6 @@ function EditHistory({
                   <option value="yamaha">Yamaha</option>
                   <option value="suzuki">Suzuki</option>
                   <option value="kawasaki">Kawasaki</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">
-                  Jenis Mesin
-                </label>
-                <select
-                  value={jenisMesin}
-                  onChange={(e) => setJenisMesin(e.target.value)}
-                  className="w-full px-3 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all appearance-none cursor-pointer"
-                  required
-                >
-                  <option value="" disabled>
-                    Pilih Jenis Mesin
-                  </option>
-                  <option value="matic">Matic</option>
-                  <option value="manual">Manual (Kopling/Gigi)</option>
                 </select>
               </div>
 

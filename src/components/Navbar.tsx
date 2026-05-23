@@ -105,7 +105,7 @@ export default function Navbar() {
             className="w-10 h-10"
           />
 
-          <span className="text-2xl font-extrabold tracking-tight text-brand-dark">
+          <span className="text-2xl font-extrabold tracking-tight text-brand-dark hidden md:block">
             BAKUL OLI
           </span>
         </Link>
