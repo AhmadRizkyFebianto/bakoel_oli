@@ -4,8 +4,7 @@
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
-  provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  provider = "prisma-client-js"
 }
 
 datasource db {
@@ -20,6 +19,8 @@ model User {
   username    String   @unique
   jenis_motor String
   jenis_mesin String
+  nomor_hp    String?
+  alamat      String?
   role        String   @default("user")
   createdAt   DateTime @default(now())
   orders      Order[]  // Relasi ke tabel Order

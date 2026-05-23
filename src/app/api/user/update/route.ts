@@ -30,11 +30,15 @@ import bcrypt from "bcryptjs";
  *                       type: string
  *                     jenis_mesin:
  *                       type: string
+ *                     nomor_hp:
+ *                       type: string
+ *                     alamat:
+ *                       type: string
  *       401:
  *         description: Unauthorized - Token is missing or invalid
  *   put:
  *     summary: Update user profile
- *     description: Updates the current user's password, motor type, or engine type.
+ *     description: Updates the current user's password, motor type, engine type, phone number, or address.
  *     tags: [User]
  *     requestBody:
  *       required: true
@@ -52,6 +56,12 @@ import bcrypt from "bcryptjs";
  *               jenis_mesin:
  *                 type: string
  *                 description: Type of engine (optional)
+ *               nomor_hp:
+ *                 type: string
+ *                 description: Phone number (optional)
+ *               alamat:
+ *                 type: string
+ *                 description: Address (optional)
  *     responses:
  *       200:
  *         description: User updated successfully
@@ -83,7 +93,7 @@ export async function GET (request:NextRequest){
 }
 
 export async function PUT(req: NextRequest) {
-    const {password,jenis_motor,jenis_mesin} = await req.json();
+    const {password,jenis_motor,jenis_mesin,nomor_hp,alamat} = await req.json();
 
     const token = req.cookies.get("token")?.value;
     if (!token){
@@ -119,6 +129,26 @@ export async function PUT(req: NextRequest) {
             },
             data: {
                 jenis_motor,
+            },
+        });
+    }
+    if (nomor_hp !== undefined) {
+        await prisma.user.update({
+            where: {
+                id: decodedToken.id,
+            },
+            data: {
+                nomor_hp,
+            },
+        });
+    }
+    if (alamat !== undefined) {
+        await prisma.user.update({
+            where: {
+                id: decodedToken.id,
+            },
+            data: {
+                alamat,
             },
         });
     }
