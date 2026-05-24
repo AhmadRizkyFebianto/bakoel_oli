@@ -238,41 +238,75 @@ export default function ProductCard() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-3 mt-16">
+              <div className="flex justify-center items-center gap-2 mt-16">
+                {/* Prev */}
                 <button
                   onClick={() =>
                     setCurrentPage((prev) => (prev > 1 ? prev - 1 : 1))
                   }
-                  className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition"
+                  disabled={currentPage === 1}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-11 h-11 rounded-full font-semibold transition-all ${
-                          currentPage === page
-                            ? "bg-gray-800 text-white scale-110"
-                            : "bg-white text-gray-600 hover:bg-gray-100"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ),
-                  )}
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1 md:gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => {
+                      // Mobile: tampilkan max 3 halaman
+                      // Tablet/Desktop: tampilkan max 5 halaman
+                      const delta = window.innerWidth < 640 ? 1 : 2;
+                      return (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - delta &&
+                          page <= currentPage + delta)
+                      );
+                    })
+                    .reduce((acc: (number | string)[], page, index, arr) => {
+                      // Tambah ellipsis jika ada gap
+                      if (index > 0 && page - (arr[index - 1] as number) > 1) {
+                        acc.push("...");
+                      }
+                      acc.push(page);
+                      return acc;
+                    }, [])
+                    .map((page, index) =>
+                      page === "..." ? (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="w-8 h-8 md:w-11 md:h-11 flex items-center justify-center text-gray-400 text-sm"
+                        >
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page as number)}
+                          className={`w-8 h-8 md:w-11 md:h-11 rounded-full font-semibold transition-all text-sm md:text-base ${
+                            currentPage === page
+                              ? "bg-gray-800 text-white scale-110"
+                              : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ),
+                    )}
                 </div>
+
+                {/* Next */}
                 <button
                   onClick={() =>
                     setCurrentPage((prev) =>
                       prev < totalPages ? prev + 1 : totalPages,
                     )
                   }
-                  className="w-12 h-12 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-black transition"
+                  disabled={currentPage === totalPages}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-black transition disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
             )}
