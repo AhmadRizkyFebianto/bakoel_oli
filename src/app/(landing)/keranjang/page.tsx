@@ -1,18 +1,114 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, Check } from "lucide-react";
+import { Trash2, Check, UserCircle, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/src/lib/CartContext";
+import { useRouter } from "next/navigation";
 
+// =========================
+// MODAL KOMPONEN
+// =========================
+function ProfileIncompleteModal({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md z-10"
+      >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center hover:bg-gray-200 transition-colors"
+        >
+          <X className="w-4 h-4 text-gray-500" />
+        </button>
+
+        {/* Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-yellow-50 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-brand-yellow flex items-center justify-center">
+              <UserCircle className="w-8 h-8 text-gray-900" />
+            </div>
+          </div>
+        </div>
+
+        {/* Text */}
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Lengkapi Profil Anda
+          </h2>
+          <p className="text-gray-500 text-sm leading-relaxed">
+            Sebelum melanjutkan pembayaran, pastikan{" "}
+            <span className="font-semibold text-gray-700">
+              alamat pengiriman
+            </span>{" "}
+            dan{" "}
+            <span className="font-semibold text-gray-700">nomor telepon</span>{" "}
+            Anda sudah terisi di halaman profil.
+          </p>
+        </div>
+
+        {/* Info Box */}
+        <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4 mb-6 flex items-start gap-3">
+          <div className="w-5 h-5 rounded-full bg-brand-yellow flex items-center justify-center shrink-0 mt-0.5">
+            <span className="text-xs font-bold text-gray-900">!</span>
+          </div>
+          <p className="text-xs text-amber-700 leading-relaxed">
+            Data ini diperlukan untuk memproses pesanan dan menghubungi Anda
+            terkait status pengiriman.
+          </p>
+        </div>
+
+        {/* Buttons */}
+        <div className="flex flex-col gap-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => router.push("/profile")}
+            className="w-full flex items-center justify-center gap-2 bg-brand-yellow text-gray-900 font-bold py-4 rounded-2xl hover:brightness-105 transition-all shadow-md"
+          >
+            Perbarui Profil Sekarang
+            <ArrowRight className="w-4 h-4" />
+          </motion.button>
+
+          <button
+            onClick={onClose}
+            className="w-full py-3 text-gray-400 text-sm font-medium hover:text-gray-600 transition-colors"
+          >
+            Nanti saja
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+// =========================
+// CART PAGE
+// =========================
 export default function CartPage() {
   const { cart, removeFromCart, updateQuantity, clearCart, loading } =
     useCart();
 
-  // =========================
-  // CHECKBOX STATE
-  // =========================
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
   useEffect(() => {
     setSelectedItems((prev) =>
@@ -20,9 +116,6 @@ export default function CartPage() {
     );
   }, [cart]);
 
-  // =========================
-  // CHECKBOX ITEM
-  // =========================
   const toggleItem = (id: string) => {
     setSelectedItems((prev) =>
       prev.includes(id)
@@ -31,9 +124,6 @@ export default function CartPage() {
     );
   };
 
-  // =========================
-  // CHECKBOX ALL
-  // =========================
   const isAllSelected = cart.length > 0 && selectedItems.length === cart.length;
 
   const toggleSelectAll = () => {
@@ -44,12 +134,66 @@ export default function CartPage() {
     }
   };
 
-  // =========================
-  // TOTAL
-  // =========================
   const subtotal = cart
     .filter((item) => selectedItems.includes(item.id))
     .reduce((acc, item) => acc + item.harga * item.qty, 0);
+
+  const handleCheckout = async () => {
+    try {
+      const selectedProductIds = cart
+        .filter((item) => selectedItems.includes(item.id))
+        .map((item) => item.id);
+
+      console.log("=== CHECKOUT itemIds ===", selectedProductIds);
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ itemIds: selectedProductIds }),
+      });
+
+      const data = await response.json();
+      console.log("=== CHECKOUT RESPONSE ===", data);
+
+      // Tampilkan modal jika profil belum lengkap
+      if (response.status === 400 && data.message?.includes("alamat")) {
+        setShowProfileModal(true);
+        return;
+      }
+
+      if (!response.ok) {
+        alert(data.message || "Terjadi kesalahan");
+        return;
+      }
+
+      if (!window.snap) {
+        alert("Midtrans Snap belum dimuat");
+        return;
+      }
+
+      window.snap.pay(data.snapToken, {
+        onSuccess: function (result: any) {
+          console.log(result);
+          alert("Pembayaran berhasil");
+          window.location.reload();
+        },
+        onPending: function (result: any) {
+          console.log(result);
+          alert("Menunggu pembayaran");
+        },
+        onError: function (result: any) {
+          console.log(result);
+          alert("Pembayaran gagal");
+        },
+        onClose: function () {
+          alert("Popup pembayaran ditutup");
+        },
+      });
+    } catch (error) {
+      console.log(error);
+      alert("Terjadi kesalahan saat checkout");
+    }
+  };
 
   // =========================
   // LOADING STATE
@@ -58,51 +202,33 @@ export default function CartPage() {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 pt-12 animate-pulse">
         <div className="container mx-auto px-6">
-          {/* TITLE */}
           <div className="h-10 w-56 bg-gray-200 rounded mb-12" />
-
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
-            {/* LEFT */}
             <div className="lg:col-span-2 space-y-6">
-              {/* HEADER */}
               <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-6 h-6 bg-gray-200 rounded" />
                   <div className="h-4 w-40 bg-gray-200 rounded" />
                 </div>
-
                 <div className="h-4 w-24 bg-gray-200 rounded" />
               </div>
-
-              {/* SKELETON ITEMS */}
               {Array.from({ length: 3 }).map((_, index) => (
                 <div
                   key={index}
                   className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6"
                 >
-                  {/* CHECKBOX */}
                   <div className="w-6 h-6 bg-gray-200 rounded shrink-0" />
-
-                  {/* IMAGE */}
                   <div className="w-24 h-24 bg-gray-200 rounded-xl shrink-0" />
-
-                  {/* INFO */}
                   <div className="flex-grow space-y-3 w-full">
                     <div className="h-5 w-52 bg-gray-200 rounded" />
-
                     <div className="h-3 w-32 bg-gray-200 rounded" />
-
                     <div className="h-3 w-28 bg-gray-200 rounded" />
-
                     <div className="flex items-center gap-2 pt-3">
                       <div className="h-9 w-28 bg-gray-200 rounded-lg" />
                     </div>
                   </div>
-
-                  {/* PRICE */}
                   <div className="flex flex-col items-end gap-4">
                     <div className="h-6 w-32 bg-gray-200 rounded" />
-
                     <div className="flex gap-3">
                       <div className="h-10 w-10 bg-gray-200 rounded-lg" />
                       <div className="h-10 w-24 bg-gray-200 rounded-lg" />
@@ -111,24 +237,19 @@ export default function CartPage() {
                 </div>
               ))}
             </div>
-
-            {/* RIGHT */}
             <div className="lg:col-span-1">
               <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 space-y-8">
                 <div className="h-6 w-52 bg-gray-200 rounded" />
-
                 <div className="space-y-4">
                   <div className="flex justify-between">
                     <div className="h-4 w-28 bg-gray-200 rounded" />
                     <div className="h-4 w-10 bg-gray-200 rounded" />
                   </div>
-
                   <div className="flex justify-between items-center pb-6 border-b border-gray-100">
                     <div className="h-5 w-20 bg-gray-200 rounded" />
                     <div className="h-8 w-40 bg-gray-200 rounded" />
                   </div>
                 </div>
-
                 <div className="h-14 w-full bg-gray-200 rounded-2xl" />
               </div>
             </div>
@@ -163,6 +284,13 @@ export default function CartPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 pb-20 pt-12">
+      {/* Modal Profile Incomplete */}
+      <AnimatePresence>
+        {showProfileModal && (
+          <ProfileIncompleteModal onClose={() => setShowProfileModal(false)} />
+        )}
+      </AnimatePresence>
+
       <div className="container mx-auto px-6">
         <h1 className="text-3xl font-bold mb-12">Keranjang</h1>
 
@@ -198,7 +326,6 @@ export default function CartPage() {
             <div className="space-y-4">
               {cart.map((item) => {
                 const isSelected = selectedItems.includes(item.id);
-
                 return (
                   <div
                     key={item.id}
@@ -265,14 +392,12 @@ export default function CartPage() {
                         Rp. {(item.harga * item.qty).toLocaleString("id-ID")}
                       </span>
                       <div className="flex items-center gap-3">
-                        {/* DELETE */}
                         <button
                           onClick={() => removeFromCart(item.id)}
                           className="bg-red-100 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm"
                         >
                           <Trash2 className="w-5 h-5" />
                         </button>
-                        {/* DETAIL */}
                         <button className="bg-brand-yellow text-brand-dark px-6 py-2 rounded-lg font-bold text-sm hover:brightness-105 transition-all">
                           Detail
                         </button>
@@ -301,69 +426,19 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <button
+              <motion.button
                 disabled={selectedItems.length === 0}
-                onClick={async () => {
-                  try {
-                    // ambil productId dari item yang dicentang
-                    const selectedProductIds = cart
-                      .filter((item) => selectedItems.includes(item.id))
-                      .map((item) => item.id);
-
-                    console.log("=== CHECKOUT itemIds ===", selectedProductIds);
-
-                    const response = await fetch("/api/checkout", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        itemIds: selectedProductIds,
-                      }),
-                    });
-
-                    if (!response.ok) {
-                      throw new Error("Checkout gagal");
-                    }
-
-                    const data = await response.json();
-
-                    console.log("=== CHECKOUT RESPONSE ===", data);
-
-                    if (!window.snap) {
-                      alert("Midtrans Snap belum dimuat");
-                      return;
-                    }
-
-                    window.snap.pay(data.snapToken, {
-                      onSuccess: function (result: any) {
-                        console.log(result);
-                        alert("Pembayaran berhasil");
-                        window.location.reload();
-                      },
-                      onPending: function (result: any) {
-                        console.log(result);
-                        alert("Menunggu pembayaran");
-                      },
-                      onError: function (result: any) {
-                        console.log(result);
-                        alert("Pembayaran gagal");
-                      },
-                      onClose: function () {
-                        alert("Popup pembayaran ditutup");
-                      },
-                    });
-                  } catch (error) {
-                    console.log(error);
-                    alert("Terjadi kesalahan saat checkout");
-                  }
-                }}
-                className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg active:scale-95 ${
+                onClick={handleCheckout}
+                whileHover={selectedItems.length > 0 ? { scale: 1.02 } : {}}
+                whileTap={selectedItems.length > 0 ? { scale: 0.97 } : {}}
+                className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg ${
                   selectedItems.length === 0
                     ? "bg-gray-300 text-gray-500 cursor-not-allowed"
                     : "bg-brand-yellow hover:brightness-105"
                 }`}
               >
                 Bayar Sekarang
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>
