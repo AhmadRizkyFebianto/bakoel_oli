@@ -6,7 +6,7 @@ import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "@/src/lib/CartContext";
 import PageBanner from "../../../components/PageBanner";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 interface Product {
@@ -39,6 +39,7 @@ export default function ProductCard() {
   const searchParams = useSearchParams();
   const [addedId, setAddedId] = useState<string | null>(null);
   const router = useRouter();
+  const querySearch = searchParams.get("search") || "";
   const queryJenisOli = searchParams.get("jenis_oli");
   const queryPeruntukan = searchParams.get("peruntukan");
   // Pagination
@@ -64,6 +65,13 @@ export default function ProductCard() {
 
     fetchProducts();
   }, []);
+
+  useEffect(() => {
+    if (querySearch) {
+      setSearch(querySearch);
+      setCurrentPage(1);
+    }
+  }, [querySearch]);
 
   const handleAddCart = (product: Product) => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
