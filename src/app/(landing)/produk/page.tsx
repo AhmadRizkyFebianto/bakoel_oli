@@ -35,7 +35,6 @@ export default function ProductCard() {
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
 
-  const { useSearchParams } = require("next/navigation");
   const searchParams = useSearchParams();
   const [addedId, setAddedId] = useState<string | null>(null);
   const router = useRouter();
