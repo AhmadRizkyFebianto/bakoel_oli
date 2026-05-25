@@ -36,6 +36,8 @@ export default function Navbar() {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  const [searchKeyword, setSearchKeyword] = useState("");
+
   // CHECK LOGIN
   const checkLoginStatus = () => {
     const loggedIn = localStorage.getItem("isLoggedIn") === "true";
@@ -61,6 +63,7 @@ export default function Navbar() {
   useEffect(() => {
     setIsMenuOpen(false);
     setIsProfileOpen(false);
+    setIsSearchOpen(false);
   }, [pathname]);
 
   // LOGOUT
@@ -81,6 +84,17 @@ export default function Navbar() {
     }
 
     router.push("/");
+  };
+
+  const handleSearchSubmit = () => {
+    const trimmedKeyword = searchKeyword.toLowerCase().trim();
+    if (!trimmedKeyword) {
+      router.push(`/produk`);
+    } else {
+      router.push(`/produk?search=${encodeURIComponent(trimmedKeyword)}`);
+    }
+    setIsSearchOpen(false);
+    setSearchKeyword("");
   };
 
   return (
@@ -162,8 +176,18 @@ export default function Navbar() {
                     placeholder="Ketik produk yang anda butuhkan..."
                     className="w-full px-4 py-2.5 text-sm bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow text-gray-700 placeholder-gray-400 transition-all"
                     autoFocus // Otomatis fokus ke text input saat pop-up terbuka
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearchSubmit();
+                      }
+                    }}
                   />
-                  <button className="bg-brand-yellow p-2.5 rounded-xl text-brand-dark hover:brightness-105 active:scale-95 transition-all shadow-sm">
+                  <button
+                    className="bg-brand-yellow p-2.5 rounded-xl text-brand-dark hover:brightness-105 active:scale-95 transition-all shadow-sm"
+                    onClick={handleSearchSubmit}
+                  >
                     <Search className="w-4 h-4" />
                   </button>
                 </motion.div>

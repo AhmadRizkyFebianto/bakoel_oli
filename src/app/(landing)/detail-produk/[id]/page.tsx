@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import { useCart } from "@/src/lib/CartContext";
 import PageBanner from "../../../../components/PageBanner";
+import CtaBanner from "@/src/components/CtaBanner";
+import { useRouter } from "next/navigation";
 
 interface Product {
   id: string;
@@ -30,6 +32,7 @@ export default function ProductDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [added, setAdded] = useState(false);
+  const router = useRouter();
 
   // Fetch product by ID
   useEffect(() => {
@@ -53,6 +56,13 @@ export default function ProductDetailPage() {
   }, [id]);
 
   const handleAddToCart = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
     if (!product) return;
     addToCart({
       productId: product.id,
@@ -220,7 +230,10 @@ export default function ProductDetailPage() {
                 </motion.a>
 
                 <motion.button
-                  onClick={handleAddToCart}
+                  onClick={(e) => {
+                    e.preventDefault(); // supaya tidak redirect ketika klik button
+                    handleAddToCart();
+                  }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.97 }}
                   className={`flex items-center justify-center gap-2 font-bold px-6 py-3 rounded-full transition-all shadow-md ${
@@ -239,26 +252,7 @@ export default function ProductDetailPage() {
       </section>
 
       {/* CTA Section */}
-      <div className="w-full bg-blue-600 min-h-[220px] py-12 px-8 md:px-16 flex flex-col md:flex-row items-center justify-between gap-6">
-        <div className="text-left max-w-xl">
-          <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">
-            Temukan Layanan perawatan motor terbaik di Bengkel{" "}
-            <span className="text-brand-yellow underline">Bakul Oli</span>
-          </h2>
-          <p className="text-white text-sm leading-relaxed opacity-90">
-            Temukan layanan perawatan motor profesional dan terpercaya di
-            Bengkel Bakul Oli. Dari ganti oli hingga tune-up lengkap, motor Anda
-            tetap prima dan aman dikendarai.
-          </p>
-        </div>
-        <motion.button
-          whileHover={{ scale: 1.03 }}
-          whileTap={{ scale: 0.97 }}
-          className="bg-brand-yellow text-blue-900 font-bold px-8 py-4 rounded-full whitespace-nowrap hover:brightness-105 transition flex-shrink-0 shadow-lg"
-        >
-          Lihat Layanan Kami
-        </motion.button>
-      </div>
+      <CtaBanner />
     </div>
   );
 }

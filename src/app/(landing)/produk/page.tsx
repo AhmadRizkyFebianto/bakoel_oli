@@ -6,7 +6,7 @@ import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useCart } from "@/src/lib/CartContext";
 import PageBanner from "../../../components/PageBanner";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 interface Product {
@@ -34,9 +34,14 @@ export default function ProductCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+
+  const { useSearchParams } = require("next/navigation");
+  const searchParams = useSearchParams();
   const [addedId, setAddedId] = useState<string | null>(null);
   const router = useRouter();
-
+  const querySearch = searchParams.get("search") || "";
+  const queryJenisOli = searchParams.get("jenis_oli");
+  const queryPeruntukan = searchParams.get("peruntukan");
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 6;
@@ -61,6 +66,13 @@ export default function ProductCard() {
     fetchProducts();
   }, []);
 
+  useEffect(() => {
+    if (querySearch) {
+      setSearch(querySearch);
+      setCurrentPage(1);
+    }
+  }, [querySearch]);
+
   const handleAddCart = (product: Product) => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
@@ -82,12 +94,38 @@ export default function ProductCard() {
     setTimeout(() => setAddedId(null), 1000);
   };
 
-  // Search Filter
+  // Search + Filter Filter
   const filteredProducts = useMemo(() => {
-    return products.filter((product) =>
-      product.nama_product.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [products, search]);
+    const searchKeyword = search.toLowerCase();
+    const filterJenisOli = queryJenisOli ? queryJenisOli.toLowerCase() : "";
+    const filterPeruntukan = queryPeruntukan
+      ? queryPeruntukan.toLowerCase()
+      : "";
+    return products.filter((product) => {
+      const productNama = product.nama_product?.toLowerCase() || "";
+      const productJenis = product.jenis_oli?.toLowerCase() || "";
+      const productPeruntukan = product.peruntukan?.toLowerCase() || "";
+
+      // 1. Cocokkan dengan Filter Dropdown dari Halaman Home (Gunakan AND '&&')
+      const matchesJenisOli = filterJenisOli
+        ? productJenis.includes(filterJenisOli)
+        : true;
+
+      const matchesPeruntukan = filterPeruntukan
+        ? productPeruntukan.includes(filterPeruntukan)
+        : true;
+
+      // 2. Cocokkan dengan Input Teks Search di Page Produk
+      const matchesSearchText =
+        !searchKeyword ||
+        productNama.includes(searchKeyword) ||
+        productJenis.includes(searchKeyword) ||
+        productPeruntukan.includes(searchKeyword);
+
+      // Semua kondisi wajib bernilai TRUE agar produk lolos filter
+      return matchesJenisOli && matchesPeruntukan && matchesSearchText;
+    });
+  }, [products, search, queryJenisOli, queryPeruntukan]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
@@ -134,6 +172,9 @@ export default function ProductCard() {
                   onChange={(e) => {
                     setSearch(e.target.value);
                     setCurrentPage(1);
+                    if (e.target.value.trim() !== "") {
+                      router.replace("/produk", { scroll: false });
+                    }
                   }}
                   className="w-full bg-white border border-gray-200 rounded-full px-6 py-4 outline-none shadow-sm focus:ring-2 focus:ring-yellow-400"
                 />
@@ -238,41 +279,75 @@ export default function ProductCard() {
 
             {/* Pagination */}
             {totalPages > 1 && (
-              <div className="flex justify-center items-center gap-3 mt-16">
+              <div className="flex justify-center items-center gap-2 mt-16">
+                {/* Prev */}
                 <button
                   onClick={() =>
                     setCurrentPage((prev) => (prev > 1 ? prev - 1 : 1))
                   }
-                  className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition"
+                  disabled={currentPage === 1}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-200 flex items-center justify-center hover:bg-gray-300 transition disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                 >
-                  <ChevronLeft className="w-5 h-5" />
+                  <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        onClick={() => setCurrentPage(page)}
-                        className={`w-11 h-11 rounded-full font-semibold transition-all ${
-                          currentPage === page
-                            ? "bg-gray-800 text-white scale-110"
-                            : "bg-white text-gray-600 hover:bg-gray-100"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ),
-                  )}
+
+                {/* Page Numbers */}
+                <div className="flex items-center gap-1 md:gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => i + 1)
+                    .filter((page) => {
+                      // Mobile: tampilkan max 3 halaman
+                      // Tablet/Desktop: tampilkan max 5 halaman
+                      const delta = window.innerWidth < 640 ? 1 : 2;
+                      return (
+                        page === 1 ||
+                        page === totalPages ||
+                        (page >= currentPage - delta &&
+                          page <= currentPage + delta)
+                      );
+                    })
+                    .reduce((acc: (number | string)[], page, index, arr) => {
+                      // Tambah ellipsis jika ada gap
+                      if (index > 0 && page - (arr[index - 1] as number) > 1) {
+                        acc.push("...");
+                      }
+                      acc.push(page);
+                      return acc;
+                    }, [])
+                    .map((page, index) =>
+                      page === "..." ? (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="w-8 h-8 md:w-11 md:h-11 flex items-center justify-center text-gray-400 text-sm"
+                        >
+                          ...
+                        </span>
+                      ) : (
+                        <button
+                          key={page}
+                          onClick={() => setCurrentPage(page as number)}
+                          className={`w-8 h-8 md:w-11 md:h-11 rounded-full font-semibold transition-all text-sm md:text-base ${
+                            currentPage === page
+                              ? "bg-gray-800 text-white scale-110"
+                              : "bg-white text-gray-600 hover:bg-gray-100 shadow-sm"
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      ),
+                    )}
                 </div>
+
+                {/* Next */}
                 <button
                   onClick={() =>
                     setCurrentPage((prev) =>
                       prev < totalPages ? prev + 1 : totalPages,
                     )
                   }
-                  className="w-12 h-12 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-black transition"
+                  disabled={currentPage === totalPages}
+                  className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-gray-800 text-white flex items-center justify-center hover:bg-black transition disabled:opacity-40 disabled:cursor-not-allowed shrink-0"
                 >
-                  <ChevronRight className="w-5 h-5" />
+                  <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
             )}

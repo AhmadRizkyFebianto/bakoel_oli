@@ -71,6 +71,15 @@ export default function Home() {
 function HeroSection() {
   const [jenisOli, setJenisOli] = useState("");
   const [jenisMesin, setJenisMesin] = useState("");
+  const router = useRouter();
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    params.set("jenis_oli", jenisOli);
+    params.set("peruntukan", jenisMesin);
+
+    router.push(`/produk?${params.toString()}`);
+  };
 
   return (
     <section className="relative h-[800px] flex items-center overflow-hidden">
@@ -182,7 +191,11 @@ function HeroSection() {
                 <option value="motor harian">Motor Harian</option>
               </select>
             </div>
-            <button className="w-full bg-brand-yellow py-3 rounded-lg font-bold mt-4 hover:brightness-105 transition-all">
+            <button
+              type="button"
+              className="w-full bg-brand-yellow py-3 rounded-lg font-bold mt-4 hover:brightness-105 transition-all"
+              onClick={handleSearch}
+            >
               Cari
             </button>
           </div>
@@ -356,7 +369,10 @@ function FeaturedProductsSection() {
                           ? "bg-green-500 text-white"
                           : "bg-yellow-400 text-black hover:brightness-105"
                       }`}
-                      onClick={() => handleAddCart(product)}
+                      onClick={(e) => {
+                        e.preventDefault(); // supaya tidak redirect ketika klik button
+                        handleAddCart(product);
+                      }}
                     >
                       <AnimatePresence mode="wait">
                         {addedId === product.id ? (
@@ -446,6 +462,21 @@ function SeeProductSection() {
 }
 
 function ServiceSelectionSection() {
+  const router = useRouter();
+  const handleBookNow = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+  };
+  const handleBookHome = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+  };
   return (
     <section className="py-20 bg-blue-50/30">
       <div className="container mx-auto px-6 text-center mb-12">
@@ -457,7 +488,10 @@ function ServiceSelectionSection() {
         </p>
       </div>
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl">
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center">
+        <motion.div
+          whileHover={{ y: -10 }}
+          className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center"
+        >
           <div className="w-auto h-48 mb-6">
             <img
               src="/assets/Rumah.png"
@@ -470,11 +504,17 @@ function ServiceSelectionSection() {
             Mekanik handal kami siap datang langsung ke lokasi Anda
             (Rumah/Kantor).
           </p>
-          <button className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">
+          <button
+            className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors"
+            onClick={handleBookHome}
+          >
             Booking Sekarang
           </button>
-        </div>
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center">
+        </motion.div>
+        <motion.div
+          whileHover={{ y: -10 }}
+          className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center"
+        >
           <div className="w-auto h-48 mb-6">
             <img
               src="/assets/Bengkel.png"
@@ -486,10 +526,13 @@ function ServiceSelectionSection() {
           <p className="text-gray-500 mb-8 text-sm">
             Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda.
           </p>
-          <button className="w-full bg-brand-yellow text-brand-dark py-3 rounded-xl font-bold hover:brightness-105 transition-all">
+          <button
+            className="w-full bg-brand-yellow text-brand-dark py-3 rounded-xl font-bold hover:brightness-105 transition-all"
+            onClick={handleBookNow}
+          >
             Pilih Jadwal
           </button>
-        </div>
+        </motion.div>
       </div>
     </section>
   );
