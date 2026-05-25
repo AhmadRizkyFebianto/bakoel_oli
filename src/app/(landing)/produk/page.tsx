@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useCart } from "@/src/lib/CartContext";
 import PageBanner from "../../../components/PageBanner";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 
 interface Product {
@@ -27,15 +27,21 @@ interface ApiResponse {
   produk: Product[];
 }
 
-interface PageProps {
-  searchParams: Promise<{
-    search?: string;
-    jenis_oli?: string;
-    peruntukan?: string;
-  }>;
+export default function ProductPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen flex items-center justify-center">
+          Loading...
+        </div>
+      }
+    >
+      <ProductCardContent />
+    </Suspense>
+  );
 }
 
-export default function ProductCard({ searchParams }: PageProps) {
+function ProductCardContent() {
   const { addToCart } = useCart();
 
   const [products, setProducts] = useState<Product[]>([]);
@@ -45,9 +51,10 @@ export default function ProductCard({ searchParams }: PageProps) {
 
   const [addedId, setAddedId] = useState<string | null>(null);
   const router = useRouter();
-  const [querySearch, setQuerySearch] = useState("");
-  const [queryJenisOli, setQueryJenisOli] = useState("");
-  const [queryPeruntukan, setQueryPeruntukan] = useState("");
+  const searchParams = useSearchParams();
+  const querySearch = searchParams.get("search") || "";
+  const queryJenisOli = searchParams.get("jenis_oli") || "";
+  const queryPeruntukan = searchParams.get("peruntukan") || "";
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 6;
@@ -73,21 +80,9 @@ export default function ProductCard({ searchParams }: PageProps) {
   }, []);
 
   useEffect(() => {
-    async function extractParams() {
-      const resolvedParams = await searchParams;
-      setQuerySearch(resolvedParams.search || "");
-      setQueryJenisOli(resolvedParams.jenis_oli || "");
-      setQueryPeruntukan(resolvedParams.peruntukan || "");
-    }
-    extractParams();
-  }, [searchParams]);
-
-  useEffect(() => {
-    if (querySearch) {
-      setSearch(querySearch);
-      setCurrentPage(1);
-    }
-  }, [querySearch]);
+    setSearch(querySearch);
+    setCurrentPage(1);
+  }, [querySearch, queryJenisOli, queryPeruntukan]);
 
   const handleAddCart = (product: Product) => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
