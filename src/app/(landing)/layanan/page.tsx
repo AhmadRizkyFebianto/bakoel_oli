@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import { Clock, Calendar, Users, Star } from "lucide-react";
 import PageBanner from "../../../components/PageBanner";
+import { useRouter } from "next/navigation";
 
 const TRUST_ITEMS = [
   { icon: <Clock className="w-5 h-5" />, label: "Layanan Cepat" },
@@ -11,6 +12,21 @@ const TRUST_ITEMS = [
 ];
 
 export default function Services() {
+  const router = useRouter();
+  const handleBookNow = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+  };
+  const handleBookHome = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       <PageBanner
@@ -41,6 +57,7 @@ export default function Services() {
             description="Mekanik handal kami siap datang langsung ke lokasi Anda (Rumah/Kantor). Tidak perlu repot keluar rumah, kami yang datang kepada Anda."
             buttonLabel="Booking Sekarang"
             buttonClass="bg-brand-blue text-white hover:brightness-110"
+            onClick={handleBookHome}
           />
           <ServiceCard
             image="/assets/Bengkel.png"
@@ -49,6 +66,7 @@ export default function Services() {
             description="Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda. Nikmati fasilitas bengkel yang lengkap dan modern."
             buttonLabel="Pilih Jadwal"
             buttonClass="bg-brand-yellow text-brand-dark hover:brightness-105"
+            onClick={handleBookNow}
           />
         </div>
       </div>
@@ -83,6 +101,7 @@ interface ServiceCardProps {
   description: string;
   buttonLabel: string;
   buttonClass: string;
+  onClick: () => void;
 }
 
 function ServiceCard({
@@ -92,6 +111,7 @@ function ServiceCard({
   description,
   buttonLabel,
   buttonClass,
+  onClick,
 }: ServiceCardProps) {
   return (
     <motion.div
@@ -106,6 +126,7 @@ function ServiceCard({
         {description}
       </p>
       <button
+        onClick={onClick}
         className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-md active:scale-95 ${buttonClass}`}
       >
         {buttonLabel}

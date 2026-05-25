@@ -34,9 +34,13 @@ export default function ProductCard() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [search, setSearch] = useState("");
+
+  const { useSearchParams } = require("next/navigation");
+  const searchParams = useSearchParams();
   const [addedId, setAddedId] = useState<string | null>(null);
   const router = useRouter();
-
+  const queryJenisOli = searchParams.get("jenis_oli");
+  const queryPeruntukan = searchParams.get("peruntukan");
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const productsPerPage = 6;
@@ -82,12 +86,38 @@ export default function ProductCard() {
     setTimeout(() => setAddedId(null), 1000);
   };
 
-  // Search Filter
+  // Search + Filter Filter
   const filteredProducts = useMemo(() => {
-    return products.filter((product) =>
-      product.nama_product.toLowerCase().includes(search.toLowerCase()),
-    );
-  }, [products, search]);
+    const searchKeyword = search.toLowerCase();
+    const filterJenisOli = queryJenisOli ? queryJenisOli.toLowerCase() : "";
+    const filterPeruntukan = queryPeruntukan
+      ? queryPeruntukan.toLowerCase()
+      : "";
+    return products.filter((product) => {
+      const productNama = product.nama_product?.toLowerCase() || "";
+      const productJenis = product.jenis_oli?.toLowerCase() || "";
+      const productPeruntukan = product.peruntukan?.toLowerCase() || "";
+
+      // 1. Cocokkan dengan Filter Dropdown dari Halaman Home (Gunakan AND '&&')
+      const matchesJenisOli = filterJenisOli
+        ? productJenis.includes(filterJenisOli)
+        : true;
+
+      const matchesPeruntukan = filterPeruntukan
+        ? productPeruntukan.includes(filterPeruntukan)
+        : true;
+
+      // 2. Cocokkan dengan Input Teks Search di Page Produk
+      const matchesSearchText =
+        !searchKeyword ||
+        productNama.includes(searchKeyword) ||
+        productJenis.includes(searchKeyword) ||
+        productPeruntukan.includes(searchKeyword);
+
+      // Semua kondisi wajib bernilai TRUE agar produk lolos filter
+      return matchesJenisOli && matchesPeruntukan && matchesSearchText;
+    });
+  }, [products, search, queryJenisOli, queryPeruntukan]);
 
   // Pagination
   const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
@@ -134,6 +164,9 @@ export default function ProductCard() {
                   onChange={(e) => {
                     setSearch(e.target.value);
                     setCurrentPage(1);
+                    if (e.target.value.trim() !== "") {
+                      router.replace("/produk", { scroll: false });
+                    }
                   }}
                   className="w-full bg-white border border-gray-200 rounded-full px-6 py-4 outline-none shadow-sm focus:ring-2 focus:ring-yellow-400"
                 />
