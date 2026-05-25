@@ -265,10 +265,85 @@ export default function CartPage() {
   // =========================
   // LOADING
   // =========================
+  // =========================
+  // LOADING - SKELETON
+  // =========================
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="min-h-screen bg-gray-50 pb-20 pt-12 animate-pulse">
+        <div className="container mx-auto px-6">
+          {/* Title */}
+          <div className="h-9 w-48 bg-gray-200 rounded-xl mb-12" />
+
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+            {/* LEFT */}
+            <div className="lg:col-span-2 space-y-4">
+              {/* Header */}
+              <div className="bg-white p-6 rounded-2xl flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-6 h-6 bg-gray-200 rounded" />
+                  <div className="h-4 w-36 bg-gray-200 rounded" />
+                </div>
+                <div className="h-4 w-24 bg-gray-200 rounded" />
+              </div>
+
+              {/* Skeleton Items */}
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="bg-white p-6 rounded-2xl border border-gray-100 flex items-center gap-6"
+                >
+                  {/* Checkbox */}
+                  <div className="w-6 h-6 bg-gray-200 rounded shrink-0" />
+
+                  {/* Image */}
+                  <div className="w-24 h-24 bg-gray-200 rounded-xl shrink-0" />
+
+                  {/* Info */}
+                  <div className="flex-grow space-y-3">
+                    <div className="h-5 w-52 bg-gray-200 rounded" />
+                    <div className="h-3 w-32 bg-gray-200 rounded" />
+                    <div className="h-3 w-28 bg-gray-200 rounded" />
+                    <div className="flex items-center gap-2 mt-4">
+                      <div className="h-8 w-8 bg-gray-200 rounded" />
+                      <div className="h-8 w-8 bg-gray-200 rounded" />
+                      <div className="h-8 w-8 bg-gray-200 rounded" />
+                    </div>
+                  </div>
+
+                  {/* Right */}
+                  <div className="flex flex-col items-end gap-4 shrink-0">
+                    <div className="h-6 w-32 bg-gray-200 rounded" />
+                    <div className="h-10 w-10 bg-gray-200 rounded-lg" />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* RIGHT */}
+            <div>
+              <div className="bg-white p-8 rounded-3xl space-y-6">
+                {/* Title */}
+                <div className="h-6 w-44 bg-gray-200 rounded" />
+
+                {/* Row 1 */}
+                <div className="flex justify-between items-center">
+                  <div className="h-4 w-28 bg-gray-200 rounded" />
+                  <div className="h-4 w-8 bg-gray-200 rounded" />
+                </div>
+
+                {/* Row 2 */}
+                <div className="flex justify-between items-center pb-6 border-b border-gray-100">
+                  <div className="h-4 w-16 bg-gray-200 rounded" />
+                  <div className="h-7 w-40 bg-gray-200 rounded" />
+                </div>
+
+                {/* Button */}
+                <div className="h-14 w-full bg-gray-200 rounded-2xl" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
