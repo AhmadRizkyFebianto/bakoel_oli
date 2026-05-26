@@ -52,7 +52,7 @@ export default function Login() {
         if (role === "admin") {
           router.push("/dashboard");
         } else {
-          router.push("/");
+          window.location.href = "/";
         }
       }
     } catch (err: any) {

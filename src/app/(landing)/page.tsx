@@ -502,7 +502,8 @@ function ServiceSelectionSection() {
           <h3 className="text-2xl font-bold mb-3">Servis di Rumah</h3>
           <p className="text-gray-500 mb-8 text-sm">
             Mekanik handal kami siap datang langsung ke lokasi Anda
-            (Rumah/Kantor).
+            (Rumah/Kantor). Tidak perlu repot keluar rumah, kami yang datang
+            kepada Anda.
           </p>
           <button
             className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors"
@@ -525,6 +526,7 @@ function ServiceSelectionSection() {
           <h3 className="text-2xl font-bold mb-3">Servis di Bengkel</h3>
           <p className="text-gray-500 mb-8 text-sm">
             Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda.
+            Nikmati fasilitas bengkel yang lengkap dan modern.
           </p>
           <button
             className="w-full bg-brand-yellow text-brand-dark py-3 rounded-xl font-bold hover:brightness-105 transition-all"

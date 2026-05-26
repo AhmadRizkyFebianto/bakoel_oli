@@ -83,7 +83,7 @@ export default function Navbar() {
       // abaikan error, tetap redirect
     }
 
-    router.push("/");
+    window.location.href = "/";
   };
 
   const handleSearchSubmit = () => {
