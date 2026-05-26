@@ -372,7 +372,7 @@ function EditHistory({
                 <div className="relative">
                   <input
                     type={showPasswordBaru ? "text" : "password"}
-                    placeholder="Masukan Konfirmasi Password Baru......"
+                    placeholder="Konfirmasi Password Baru......"
                     className="w-full px-4 py-4 bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow transition-all"
                     value={passwordBaru}
                     onChange={(e) => setPasswordBaru(e.target.value)}
