@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import CtaBanner from "../../../components/CtaBanner";
-import { FEATURED_PRODUCTS } from "@/src/data/products";
+import { useOrders } from "@/src/lib/orders.store";
 import axios from "axios";
 
 interface UserProfile {
@@ -172,6 +172,8 @@ function EditHistory({
   initialAlamat: string;
   onUpdated: () => Promise<void>;
 }) {
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [noHp, setNoHp] = useState(initialNoHp ?? "");
   const [alamat, setAlamat] = useState(initialAlamat ?? "");
@@ -241,6 +243,39 @@ function EditHistory({
     }
   };
 
+  const fetchOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      const res = await axios.get("/api/orders");
+      setOrders(res.data.orders || []);
+    } catch (err) {
+      console.error("Gagal mengambil history pesanan", err);
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "history") {
+      fetchOrders();
+    }
+  }, [activeTab]);
+
+  const getStatusColor = (status: string) => {
+    switch (status.toLowerCase()) {
+      case "pending":
+        return "bg-yellow-100 text-yellow-700";
+      case "settlement":
+      case "success":
+        return "bg-green-100 text-green-700";
+      case "expire":
+      case "cancel":
+        return "bg-red-100 text-red-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+
   return (
     <div className="w-full">
       {/* Tab Header */}
@@ -258,11 +293,9 @@ function EditHistory({
           </li>
           <li className="me-2">
             <button
-              onClick={() => setActiveTab("dashboard")}
+              onClick={() => setActiveTab("history")}
               className={`inline-block p-4 border-b-2 ${
-                activeTab === "dashboard"
-                  ? "border-black"
-                  : "border-transparent"
+                activeTab === "history" ? "border-black" : "border-transparent"
               }`}
             >
               History
@@ -493,36 +526,83 @@ function EditHistory({
           </div>
         )}
 
-        {activeTab === "dashboard" && (
-          <div className="">
-            {FEATURED_PRODUCTS.map((item) => (
-              <div className="mb-2">
-                <div className="flex flex-col sm:flex-row items-center">
-                  <div className="w-24 h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="h-full object-contain"
-                    />
-                  </div>
-                  <div className="flex-grow space-y-1 text-center sm:text-left">
-                    <h4 className="font-bold text-lg">{item.name}</h4>
-                    <p className="text-xs text-gray-400">{item.category}</p>
-                  </div>
-                  <div className="text-right space-y-4 flex flex-col items-center sm:items-end">
-                    <span className="text-xl font-extrabold text-brand-blue">
-                      Rp. {item.price.toLocaleString("id-ID")}
-                    </span>
-                    <div className="flex items-center gap-3">
-                      <button className="bg-brand-yellow text-brand-dark px-6 py-2 rounded-lg font-bold text-sm hover:brightness-105 transition-all">
-                        Detail
+        {activeTab === "history" && (
+          <div className="space-y-4">
+            {loadingOrders ? (
+              <div className="text-center py-10">Memuat riwayat...</div>
+            ) : orders.length > 0 ? (
+              orders.map((order) => {
+                const firstItem = order.items[0];
+                return (
+                  <div
+                    key={order.id}
+                    className="flex flex-col md:flex-row items-center gap-6"
+                  >
+                    {/* Image Perwakilan */}
+                    <div className="w-24 h-24 bg-white rounded-xl flex items-center justify-center p-2 shadow-sm">
+                      <img
+                        src={
+                          firstItem?.product?.image_url ||
+                          "/assets/placeholder-oil.png"
+                        }
+                        alt="Product"
+                        className="h-full object-contain"
+                      />
+                    </div>
+
+                    {/* Order Info */}
+                    <div className="flex-grow text-center md:text-left">
+                      <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
+                        <h4 className="font-bold text-lg">
+                          Order #{order.id.slice(-6).toUpperCase()}
+                        </h4>
+                        <span
+                          className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full w-fit mx-auto md:mx-0 ${getStatusColor(order.status)}`}
+                        >
+                          {order.status}
+                        </span>
+                      </div>
+                      <p className="text-gray-500 text-sm">
+                        {firstItem?.product?.nama_product}
+                        {order.items.length > 1 &&
+                          ` +${order.items.length - 1} produk lainnya`}
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        {new Date(order.createdAt).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                        })}
+                      </p>
+                    </div>
+
+                    {/* Total & Detail Button */}
+                    <div className="flex flex-col items-center md:items-end gap-3">
+                      <div className="text-center md:text-right">
+                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">
+                          Total Bayar
+                        </p>
+                        <p className="text-xl font-black text-brand-blue">
+                          Rp. {order.total.toLocaleString("id-ID")}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() =>
+                          (window.location.href = `/detail-history/${order.id}`)
+                        }
+                        className="bg-brand-yellow text-brand-dark px-5 py-2 rounded-lg font-bold text-xs hover:brightness-105 transition-all shadow-sm"
+                      >
+                        Lihat Detail
                       </button>
                     </div>
                   </div>
-                </div>
-                <div className="h-1 w-auto bg-gray-100 my-1.5" />
+                );
+              })
+            ) : (
+              <div className="text-center py-10 text-gray-400">
+                Belum ada riwayat pesanan.
               </div>
-            ))}
+            )}
           </div>
         )}
       </div>
