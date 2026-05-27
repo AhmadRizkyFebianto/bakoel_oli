@@ -18,6 +18,18 @@ interface CartContextType {
   cartCount: number;
   animateCart: boolean;
   loading: boolean;
+  fetchCart: () => Promise<void>; // tambah ini
+  addToCart: (product: Omit<CartItem, "id">) => void;
+  removeFromCart: (cartItemId: string) => void;
+  updateQuantity: (cartItemId: string, quantity: number) => void;
+  clearCart: () => void;
+}
+
+interface CartContextType {
+  cart: CartItem[];
+  cartCount: number;
+  animateCart: boolean;
+  loading: boolean;
   addToCart: (product: Omit<CartItem, "id">) => void;
   removeFromCart: (cartItemId: string) => void;
   updateQuantity: (cartItemId: string, quantity: number) => void;
@@ -165,6 +177,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         cart,
         cartCount,
         animateCart,
+        fetchCart,
         loading,
         addToCart,
         removeFromCart,
