@@ -94,6 +94,7 @@ model BookingService {
   jam           DateTime
   BookingSlot   Int      @default(2)
   jenisService  String
+  tempatService String
   status        String   @default("Menunggu") // "Menunggu", "Selesai", "Batal"
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

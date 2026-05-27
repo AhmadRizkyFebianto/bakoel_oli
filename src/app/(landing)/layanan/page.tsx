@@ -3,6 +3,8 @@ import { motion } from "framer-motion";
 import { Clock, Calendar, Users, Star } from "lucide-react";
 import PageBanner from "../../../components/PageBanner";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import BookingModal from "../../../components/BookingModal";
 
 const TRUST_ITEMS = [
   { icon: <Clock className="w-5 h-5" />, label: "Layanan Cepat" },
@@ -13,19 +15,32 @@ const TRUST_ITEMS = [
 
 export default function Services() {
   const router = useRouter();
+  const [openModal, setOpenModal] = useState(false);
+
+  const [selectedPlace, setSelectedPlace] = useState<"rumah" | "bengkel">(
+    "rumah",
+  );
   const handleBookNow = () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
     if (!isLoggedIn) {
       router.push("/login");
       return;
     }
+
+    setSelectedPlace("bengkel");
+    setOpenModal(true);
   };
   const handleBookHome = () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
     if (!isLoggedIn) {
       router.push("/login");
       return;
     }
+
+    setSelectedPlace("rumah");
+    setOpenModal(true);
   };
   return (
     <div className="min-h-screen bg-gray-50">
@@ -90,6 +105,11 @@ export default function Services() {
           </button>
         </div>
       </div>
+      <BookingModal
+        isOpen={openModal}
+        onClose={() => setOpenModal(false)}
+        defaultPlace={selectedPlace}
+      />
     </div>
   );
 }
