@@ -35,6 +35,7 @@ import jwt from "jsonwebtoken";
  *             required:
  *               - jam
  *               - jenisService
+ *               - tempatService
  *             properties:
  *               jam:
  *                 type: string
@@ -42,8 +43,10 @@ import jwt from "jsonwebtoken";
  *                 description: Tanggal dan jam booking (harus di masa depan, contoh "2026-05-28T10:00:00.000Z")
  *               jenisService:
  *                 type: string
- *                 enum: ["servis dirumah", "servis di bengkel"]
- *                 description: Jenis servis ("servis dirumah" atau "servis di bengkel")
+ *                 description: Jenis servis (contoh "servis dirumah" atau "servis di bengkel")
+ *               tempatService:
+ *                 type: string
+ *                 description: Tempat lokasi servis (contoh alamat rumah jika servis di rumah, atau nama/lokasi bengkel)
  *     responses:
  *       201:
  *         description: Booking berhasil dibuat
@@ -145,13 +148,10 @@ export async function POST(req: NextRequest) {
         }
 
         const body = await req.json();
-        const { jam, jenisService } = body;
+        const { jam, jenisService, tempatService } = body;
 
-        // Validasi jenisService
-        if (jenisService !== "servis dirumah" && jenisService !== "servis di bengkel") {
-            return NextResponse.json({
-                message: "Jenis service tidak valid. Harus 'servis dirumah' atau 'servis di bengkel'."
-            }, { status: 400 });
+        if (!jenisService || !tempatService) {
+            return NextResponse.json({ message: "Kolom jenis service dan tempat service wajib diisi." }, { status: 400 });
         }
 
         // Validasi jam
@@ -199,6 +199,7 @@ export async function POST(req: NextRequest) {
                 userId: user.id,
                 jam: bookingDate,
                 jenisService,
+                tempatService,
                 BookingSlot: 2,
                 status: "Menunggu"
             },
