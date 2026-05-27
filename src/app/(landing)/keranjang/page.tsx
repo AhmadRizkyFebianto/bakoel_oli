@@ -80,8 +80,14 @@ function ProfileIncompleteModal({ onClose }: { onClose: () => void }) {
 // CART PAGE
 // =========================
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, clearCart, loading } =
-    useCart();
+  const {
+    cart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    loading,
+    fetchCart,
+  } = useCart();
 
   // =========================
   // STATE
@@ -210,8 +216,8 @@ export default function CartPage() {
       // SNAP PAY
       window.snap.pay(data.snapToken, {
         onSuccess: function (result: any) {
-          console.log(result);
-
+          // console.log(result);
+          fetchCart();
           showPaymentPopup(
             "success",
             "Pembayaran Berhasil",
@@ -224,8 +230,8 @@ export default function CartPage() {
         },
 
         onPending: function (result: any) {
-          console.log(result);
-
+          // console.log(result);
+          fetchCart();
           showPaymentPopup(
             "pending",
             "Menunggu Pembayaran",
@@ -234,8 +240,8 @@ export default function CartPage() {
         },
 
         onError: function (result: any) {
-          console.log(result);
-
+          // console.log(result);
+          fetchCart();
           showPaymentPopup(
             "error",
             "Pembayaran Gagal",
@@ -244,6 +250,7 @@ export default function CartPage() {
         },
 
         onClose: function () {
+          fetchCart();
           showPaymentPopup(
             "error",
             "Pembayaran Dibatalkan",

@@ -25,6 +25,7 @@ model User {
   createdAt   DateTime @default(now())
   orders      Order[]  // Relasi ke tabel Order
   cart        Cart?
+  bookings    BookingService[]
 }
 
 model Product {
@@ -85,4 +86,16 @@ model CartItem {
   updatedAt DateTime @updatedAt
 
   @@unique([cartId, productId])
+}
+model BookingService {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id])
+  jam           DateTime
+  BookingSlot   Int      @default(2)
+  jenisService  String
+  tempatService String
+  status        String   @default("Menunggu") // "Menunggu", "Selesai", "Batal"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
