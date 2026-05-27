@@ -172,8 +172,6 @@ function EditHistory({
   initialAlamat: string;
   onUpdated: () => Promise<void>;
 }) {
-  const [orders, setOrders] = useState<any[]>([]);
-  const [loadingOrders, setLoadingOrders] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
   const [noHp, setNoHp] = useState(initialNoHp ?? "");
   const [alamat, setAlamat] = useState(initialAlamat ?? "");
@@ -193,7 +191,23 @@ function EditHistory({
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
+  const [orders, setOrders] = useState<any[]>([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
+  const [paymentPopup, setPaymentPopup] = useState<{
+    open: boolean;
+    type: "success" | "error" | "pending";
+    title: string;
+    message: string;
+  }>({
+    open: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
+
   useEffect(() => {
+    setNoHp(initialNoHp ?? "");
+    setAlamat(initialAlamat ?? "");
     setJenisMotor(initialJenisMotor);
     setJenisMesin(initialJenisMesin);
   }, [initialJenisMotor, initialJenisMesin]);
@@ -260,6 +274,49 @@ function EditHistory({
       fetchOrders();
     }
   }, [activeTab]);
+
+  const handleRePay = (snapToken: string) => {
+    if (!(window as any).snap) {
+      setPaymentPopup({
+        open: true,
+        type: "error",
+        title: "Sistem Error",
+        message: "Midtrans Snap tidak ditemukan. Silakan refresh halaman.",
+      });
+      return;
+    }
+
+    (window as any).snap.pay(snapToken, {
+      onSuccess: function () {
+        fetchOrders(); // Refresh status di history
+        setPaymentPopup({
+          open: true,
+          type: "success",
+          title: "Berhasil!",
+          message: "Pembayaran Anda telah diterima.",
+        });
+      },
+      onPending: function () {
+        setPaymentPopup({
+          open: true,
+          type: "pending",
+          title: "Menunggu",
+          message: "Selesaikan pembayaran sesuai instruksi Midtrans.",
+        });
+      },
+      onError: function () {
+        setPaymentPopup({
+          open: true,
+          type: "error",
+          title: "Gagal",
+          message: "Terjadi kesalahan saat memproses pembayaran.",
+        });
+      },
+      onClose: function () {
+        console.log("Customer closed the popup without finishing the payment");
+      },
+    });
+  };
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
