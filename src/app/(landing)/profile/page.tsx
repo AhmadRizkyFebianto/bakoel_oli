@@ -180,7 +180,7 @@ function BookingItem({
   getStatusColor,
 }: {
   booking: Booking;
-  onCancel: (id: string) => void;
+  onCancel: () => void;
   getStatusColor: (status: string) => string;
 }) {
   const status = booking.status || "Menunggu";
@@ -228,14 +228,12 @@ function BookingItem({
       </div>
 
       <div>
-        {canCancel && (
-          <a
-            href="https://wa.me/6288991520696"
-            className="bg-red-500 py-1 px-1.5 rounded-sm text-xs text-white hover:bg-red-600 duration-300 transition-colors"
-          >
-            Batalkan Booking
-          </a>
-        )}
+        <button
+          onClick={() => onCancel()}
+          className="bg-red-500 py-1 px-1.5 rounded-sm text-xs text-white hover:bg-red-600 duration-300 transition-colors"
+        >
+          Batalkan Booking
+        </button>
       </div>
     </div>
   );
@@ -279,6 +277,17 @@ function EditHistory({
   // Booking service
   const [bookings, setBookings] = useState<any[]>([]);
   const [loadingData, setLoadingData] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelStep, setCancelStep] = useState(1);
+
+  const handleOpenCancelModal = () => {
+    setCancelStep(1);
+    setShowCancelModal(true);
+  };
+
+  const confirmCancel = () => {
+    setCancelStep(2);
+  };
 
   const fetchBookings = async () => {
     setLoadingData(true);
@@ -744,7 +753,7 @@ function EditHistory({
                 <BookingItem
                   key={b.id}
                   booking={b}
-                  onCancel={cancelBooking}
+                  onCancel={handleOpenCancelModal}
                   getStatusColor={(s) => {
                     const status = s?.toLowerCase();
                     if (status === "selesai")
@@ -759,6 +768,95 @@ function EditHistory({
                 Tidak ada jadwal service.
               </div>
             )}
+          </div>
+        )}
+
+        {showCancelModal && (
+          <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white rounded-2xl p-8 max-w-sm w-full shadow-2xl transform transition-all">
+              {cancelStep === 1 ? (
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-8 h-8"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M12 9v3.75m9-.75a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 3.75h.008v.008H12v-.008Z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Batalkan Booking?
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Apakah Anda yakin ingin membatalkan jadwal service ini?
+                  </p>
+
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => setShowCancelModal(false)}
+                      className="flex-1 px-4 py-2 bg-gray-100 text-gray-700 rounded-xl font-semibold hover:bg-gray-200 transition-colors"
+                    >
+                      Kembali
+                    </button>
+                    <button
+                      onClick={confirmCancel}
+                      disabled={saving}
+                      className="flex-1 px-4 py-2 bg-red-500 text-white rounded-xl font-semibold hover:bg-red-600 transition-colors disabled:opacity-50"
+                    >
+                      {saving ? "Proses..." : "Ya, Batal"}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={2}
+                      stroke="currentColor"
+                      className="w-8 h-8"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+                      />
+                    </svg>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-2">
+                    Booking Dibatalkan
+                  </h3>
+                  <p className="text-gray-500 mb-6">
+                    Pesanan Anda telah berhasil dibatalkan. Jika ada pertanyaan
+                    lebih lanjut, silakan hubungi kami.
+                  </p>
+
+                  <a
+                    href="https://wa.me/6288991520696"
+                    target="_blank"
+                    className="block w-full px-4 py-3 bg-green-500 text-white rounded-xl font-bold mb-3 hover:bg-green-600 transition-colors text-center"
+                  >
+                    Hubungi WhatsApp
+                  </a>
+                  <button
+                    onClick={() => setShowCancelModal(false)}
+                    className="w-full text-sm text-gray-400 hover:text-gray-600 underline"
+                  >
+                    Tutup
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
