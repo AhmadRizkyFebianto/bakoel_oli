@@ -159,6 +159,87 @@ function ProfilePhoto({ profile }: { profile: UserProfile }) {
   );
 }
 
+type Booking = {
+  id: string;
+  jam?: string | Date;
+  jenisService?: string;
+  tempatService?: string;
+  status?: string;
+  user?: {
+    username?: string;
+    nomor_hp?: string;
+    alamat?: string;
+  };
+  userId?: string;
+};
+
+function BookingItem({
+  booking,
+  onCancel,
+  getStatusColor,
+}: {
+  booking: Booking;
+  onCancel: (id: string) => void;
+  getStatusColor: (status: string) => string;
+}) {
+  const status = booking.status || "Menunggu";
+  const canCancel = status.toLowerCase() === "menunggu";
+
+  const dateObj = booking.jam ? new Date(booking.jam) : null;
+  const formattedDate = dateObj?.toLocaleDateString("id-ID", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+  const formattedTime = dateObj?.toLocaleTimeString("id-ID", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+
+  return (
+    <div className="flex flex-col md:flex-row items-center gap-6 p-4">
+      <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center p-2 shadow-sm border">
+        <img
+          src="/assets/Produk.png"
+          alt="Service"
+          className="h-full object-contain"
+        />
+      </div>
+
+      <div className="flex-grow text-center md:text-left">
+        <div className="flex flex-col md:flex-row md:items-center gap-2 mb-1">
+          <h4 className="font-bold text-lg text-brand-dark">Booking Service</h4>
+          <span
+            className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full ${getStatusColor(status)}`}
+          >
+            {status}
+          </span>
+        </div>
+        <p className="text-gray-500 text-sm">
+          {booking.jenisService || "Service Rutin"} •{" "}
+          {booking.tempatService || "Bengkel"}
+        </p>
+        <p className="text-xs text-gray-400 mt-1">
+          {dateObj
+            ? `${formattedDate} • ${formattedTime} WIB`
+            : "Waktu belum diatur"}
+        </p>
+      </div>
+
+      <div>
+        {canCancel && (
+          <button
+            onClick={() => onCancel(booking.id)}
+            className="bg-red-500 py-1 px-1.5 rounded-sm text-xs text-white hover:bg-red-600 duration-300 transition-colors"
+          >
+            Batalkan Booking
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 function EditHistory({
   initialJenisMotor,
   initialJenisMesin,
@@ -193,17 +274,22 @@ function EditHistory({
 
   const [orders, setOrders] = useState<any[]>([]);
   const [loadingOrders, setLoadingOrders] = useState(false);
-  const [paymentPopup, setPaymentPopup] = useState<{
-    open: boolean;
-    type: "success" | "error" | "pending";
-    title: string;
-    message: string;
-  }>({
-    open: false,
-    type: "success",
-    title: "",
-    message: "",
-  });
+
+  // Booking service
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loadingData, setLoadingData] = useState(false);
+
+  const fetchBookings = async () => {
+    setLoadingData(true);
+    try {
+      const res = await axios.get("/api/booking", { withCredentials: true });
+      setBookings(res.data?.bookings || []);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoadingData(false);
+    }
+  };
 
   useEffect(() => {
     setNoHp(initialNoHp ?? "");
@@ -270,53 +356,14 @@ function EditHistory({
   };
 
   useEffect(() => {
-    if (activeTab === "history") {
+    if (activeTab === "pesanan") {
       fetchOrders();
     }
-  }, [activeTab]);
 
-  const handleRePay = (snapToken: string) => {
-    if (!(window as any).snap) {
-      setPaymentPopup({
-        open: true,
-        type: "error",
-        title: "Sistem Error",
-        message: "Midtrans Snap tidak ditemukan. Silakan refresh halaman.",
-      });
-      return;
+    if (activeTab === "service") {
+      fetchBookings();
     }
-
-    (window as any).snap.pay(snapToken, {
-      onSuccess: function () {
-        fetchOrders(); // Refresh status di history
-        setPaymentPopup({
-          open: true,
-          type: "success",
-          title: "Berhasil!",
-          message: "Pembayaran Anda telah diterima.",
-        });
-      },
-      onPending: function () {
-        setPaymentPopup({
-          open: true,
-          type: "pending",
-          title: "Menunggu",
-          message: "Selesaikan pembayaran sesuai instruksi Midtrans.",
-        });
-      },
-      onError: function () {
-        setPaymentPopup({
-          open: true,
-          type: "error",
-          title: "Gagal",
-          message: "Terjadi kesalahan saat memproses pembayaran.",
-        });
-      },
-      onClose: function () {
-        console.log("Customer closed the popup without finishing the payment");
-      },
-    });
-  };
+  }, [activeTab]);
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
@@ -330,6 +377,20 @@ function EditHistory({
         return "bg-red-100 text-red-700";
       default:
         return "bg-gray-100 text-gray-700";
+    }
+  };
+
+  const cancelBooking = async (bookingId: string) => {
+    if (!confirm("Apakah Anda yakin ingin membatalkan booking ini?")) return;
+    try {
+      await axios.put(
+        "/api/booking",
+        { bookingId, status: "Batal" },
+        { withCredentials: true },
+      );
+      fetchBookings();
+    } catch (err) {
+      alert("Gagal membatalkan booking");
     }
   };
 
@@ -350,12 +411,22 @@ function EditHistory({
           </li>
           <li className="me-2">
             <button
-              onClick={() => setActiveTab("history")}
+              onClick={() => setActiveTab("pesanan")}
               className={`inline-block p-4 border-b-2 ${
-                activeTab === "history" ? "border-black" : "border-transparent"
+                activeTab === "pesanan" ? "border-black" : "border-transparent"
               }`}
             >
-              History
+              Pesanan
+            </button>
+          </li>
+          <li className="me-2">
+            <button
+              onClick={() => setActiveTab("service")}
+              className={`inline-block p-4 border-b-2 ${
+                activeTab === "service" ? "border-black" : "border-transparent"
+              }`}
+            >
+              Service
             </button>
           </li>
         </ul>
@@ -583,7 +654,7 @@ function EditHistory({
           </div>
         )}
 
-        {activeTab === "history" && (
+        {activeTab === "pesanan" && (
           <div className="space-y-4">
             {loadingOrders ? (
               <div className="text-center py-10">Memuat riwayat...</div>
@@ -658,6 +729,41 @@ function EditHistory({
             ) : (
               <div className="text-center py-10 text-gray-400">
                 Belum ada riwayat pesanan.
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "service" && (
+          <div className="space-y-4">
+            {loadingData ? (
+              <p className="text-center">Memuat data booking...</p>
+            ) : bookings.length > 0 ? (
+              bookings.map((b) => (
+                <BookingItem
+                  key={b.id}
+                  booking={b}
+                  onCancel={cancelBooking}
+                  getStatusColor={(s) => {
+                    const status = s?.toLowerCase();
+                    if (status === "selesai")
+                      return "bg-green-100 text-green-700";
+                    if (status === "batal") return "bg-red-100 text-red-700";
+                    return "bg-yellow-100 text-yellow-700";
+                  }}
+                />
+              ))
+            ) : (
+              <div className="text-center py-12">
+                <p className="text-gray-400 font-bold">
+                  Tidak ada jadwal service aktif.
+                </p>
+                <button
+                  onClick={() => (window.location.href = "/booking")}
+                  className="mt-4 text-brand-dark font-black border-b-2 border-brand-yellow pb-1"
+                >
+                  Booking Sekarang?
+                </button>
               </div>
             )}
           </div>
