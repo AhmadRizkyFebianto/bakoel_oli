@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useState } from "react";
 import CtaBanner from "../../../components/CtaBanner";
 import { useOrders } from "@/src/lib/orders.store";
+import Link from "next/link";
 import axios from "axios";
 
 interface UserProfile {
@@ -228,12 +229,12 @@ function BookingItem({
 
       <div>
         {canCancel && (
-          <button
-            onClick={() => onCancel(booking.id)}
+          <a
+            href="https://wa.me/6288991520696"
             className="bg-red-500 py-1 px-1.5 rounded-sm text-xs text-white hover:bg-red-600 duration-300 transition-colors"
           >
             Batalkan Booking
-          </button>
+          </a>
         )}
       </div>
     </div>
@@ -754,16 +755,8 @@ function EditHistory({
                 />
               ))
             ) : (
-              <div className="text-center py-12">
-                <p className="text-gray-400 font-bold">
-                  Tidak ada jadwal service aktif.
-                </p>
-                <button
-                  onClick={() => (window.location.href = "/booking")}
-                  className="mt-4 text-brand-dark font-black border-b-2 border-brand-yellow pb-1"
-                >
-                  Booking Sekarang?
-                </button>
+              <div className="text-center py-10 text-gray-400">
+                Tidak ada jadwal service.
               </div>
             )}
           </div>
