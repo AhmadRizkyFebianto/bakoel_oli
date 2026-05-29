@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Search, Package, Info, Phone, MapPin, CalendarDays } from "lucide-react";
+import { Search, Package, Info, Phone, MapPin, CalendarDays, Handshake } from "lucide-react";
 
 import { AdminLayout } from "@/src/components/admin/AdminLayout";
 import { Button } from "@/src/components/ui/button";
@@ -35,6 +35,7 @@ import {
 import { Toaster } from "@/src/components/ui/sonner";
 
 import { type Order, type OrderStatus, formatRupiah, formatTanggal } from "@/src/lib/orders.store";
+import Link from "next/link";
 
 function statusBadge(s: OrderStatus) {
   const map: Record<OrderStatus, string> = {
@@ -129,6 +130,13 @@ export default function PesananPage() {
     <AdminLayout
       title="Monitoring Data Pesanan"
       subtitle="Kelola seluruh data pesanan pelanggan."
+      actions={
+        <Button asChild className="shadow-[var(--shadow-yellow)]">
+          <Link href="/dashboard/pesanan/booking-service">
+            <Handshake className="h-4 w-4" /> Cek Booking Service
+          </Link>
+        </Button>
+      }
     >
       <Toaster richColors position="top-right" />
 
