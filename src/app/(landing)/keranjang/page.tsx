@@ -278,7 +278,7 @@ export default function CartPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 pt-12 animate-pulse">
-        <div className="container mx-auto px-6">
+        <div className="container mx-auto px-4 sm:px-6">
           {/* Title */}
           <div className="h-9 w-48 bg-gray-200 rounded-xl mb-12" />
 
@@ -376,7 +376,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 pt-12">
+    <div className="min-h-screen bg-gray-50 pb-20 pt-6 md:pt-10">
       {/* PROFILE MODAL */}
       <AnimatePresence>
         {showProfileModal && (
@@ -475,13 +475,15 @@ export default function CartPage() {
 
       {/* PAGE */}
       <div className="container mx-auto px-6">
-        <h1 className="text-3xl font-bold mb-12">Keranjang</h1>
+        <h1 className="text-2xl md:text-3xl font-bold mb-8 md:mb-12">
+          Keranjang
+        </h1>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-10">
           {/* LEFT */}
           <div className="lg:col-span-2 space-y-4">
             {/* HEADER */}
-            <div className="bg-white p-6 rounded-2xl flex items-center justify-between">
+            <div className="bg-white p-4 md:p-6 rounded-2xl flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <button
                   onClick={toggleSelectAll}
@@ -494,12 +496,15 @@ export default function CartPage() {
                   {isAllSelected && <Check className="w-4 h-4" />}
                 </button>
 
-                <span className="font-bold">
+                <span className="font-bold text-sm md:text-base">
                   Pilih Semua ({selectedItems.length})
                 </span>
               </div>
 
-              <button onClick={clearCart} className="text-red-500 font-bold">
+              <button
+                onClick={clearCart}
+                className="text-red-500 font-bold text-sm md:text-base whitespace-nowrap"
+              >
                 Hapus Semua
               </button>
             </div>
@@ -511,7 +516,7 @@ export default function CartPage() {
               return (
                 <div
                   key={item.id}
-                  className={`bg-white p-6 rounded-2xl border flex items-center gap-6 ${
+                  className={`bg-white p-4 sm:p-6 rounded-2xl border flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 ${
                     isSelected ? "border-brand-blue" : "border-gray-100"
                   }`}
                 >
@@ -531,16 +536,22 @@ export default function CartPage() {
                   <img
                     src={item.image_url || "/placeholder.jpg"}
                     alt={item.nama_product}
-                    className="w-24 h-24 object-contain"
+                    className="w-20 h-20 md:w-24 md:h-24 object-contain shrink-0"
                   />
 
                   {/* Info */}
-                  <div className="flex-grow">
-                    <h4 className="font-bold text-lg">{item.nama_product}</h4>
+                  <div className="flex-grow min-w-0">
+                    <h4 className="font-bold text-base md:text-lg leading-tight">
+                      {item.nama_product}
+                    </h4>
 
-                    <p className="text-sm text-gray-400">{item.jenis_oli}</p>
+                    <p className="text-xs md:text-sm text-gray-400">
+                      {item.jenis_oli}
+                    </p>
 
-                    <p className="text-sm text-gray-400">{item.peruntukan}</p>
+                    <p className="text-xs md:text-sm text-gray-400">
+                      {item.peruntukan}
+                    </p>
 
                     {/* Qty */}
                     <div className="flex items-center gap-3 mt-4">
@@ -555,7 +566,7 @@ export default function CartPage() {
 
                       <button
                         onClick={() => updateQuantity(item.id, item.qty + 1)}
-                        className="px-3 py-1 border rounded"
+                        className="w-8 h-8 md:w-9 md:h-9 border rounded-lg flex items-center justify-center"
                       >
                         +
                       </button>
@@ -563,8 +574,8 @@ export default function CartPage() {
                   </div>
 
                   {/* Right */}
-                  <div className="text-right">
-                    <div className="text-xl font-bold text-brand-blue">
+                  <div className="flex sm:flex-col items-end justify-between sm:justify-start sm:text-right gap-3 sm:gap-4">
+                    <div className="text-lg md:text-xl font-bold text-brand-blue whitespace-nowrap">
                       Rp. {(item.harga * item.qty).toLocaleString("id-ID")}
                     </div>
 
@@ -582,7 +593,7 @@ export default function CartPage() {
 
           {/* RIGHT */}
           <div>
-            <div className="bg-white p-8 rounded-3xl sticky top-32">
+            <div className="bg-white p-6 md:p-8 rounded-3xl xl:sticky xl:top-32">
               <h3 className="text-xl font-bold mb-6">Ringkasan Belanja</h3>
 
               <div className="flex justify-between mb-4">
@@ -593,7 +604,7 @@ export default function CartPage() {
               <div className="flex justify-between border-b pb-6 mb-6">
                 <span>Total</span>
 
-                <span className="text-2xl font-bold text-brand-blue">
+                <span className="text-xl md:text-2xl font-bold text-brand-blue text-right break-all">
                   Rp. {subtotal.toLocaleString("id-ID")}
                 </span>
               </div>
