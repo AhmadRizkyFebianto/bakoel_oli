@@ -136,9 +136,9 @@ function ServiceCard({
   return (
     <motion.div
       whileHover={{ y: -10 }}
-      className="bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100 flex flex-col items-center text-center group"
+      className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center"
     >
-      <div className="w-96 h-48 mb-8 overflow-hidden">
+      <div className="w-auto h-48 mb-6">
         <img src={image} alt={alt} className="w-96 h-48" />
       </div>
       <h3 className="text-3xl font-bold mb-4">{title}</h3>

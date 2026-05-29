@@ -1,6 +1,8 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
+import DatePicker from "react-datepicker";
+
 import {
   X,
   Wrench,
@@ -13,6 +15,8 @@ import {
 import { useEffect, useState } from "react";
 
 import BookingSuccessModal from "./BookingModalSucces";
+
+import "react-datepicker/dist/react-datepicker.css";
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -30,6 +34,8 @@ interface ServiceCardProps {
 
 const TIMES = ["09:00", "11:00", "13:00", "15:00"];
 
+const MAX_SLOT = 2;
+
 export default function BookingModal({
   isOpen,
   onClose,
@@ -41,13 +47,14 @@ export default function BookingModal({
 
   const [selectedTime, setSelectedTime] = useState("09:00");
 
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
 
   const [loading, setLoading] = useState(false);
 
   const [showSuccess, setShowSuccess] = useState(false);
 
   const [successData, setSuccessData] = useState<any>(null);
+
   const [bookings, setBookings] = useState<any[]>([]);
 
   useEffect(() => {
@@ -84,7 +91,11 @@ export default function BookingModal({
   const progress = (completed / progressItems.length) * 100;
 
   const getRemainingSlot = (time: string) => {
-    if (!selectedDate) return 2;
+    if (!selectedDate) return MAX_SLOT;
+
+    const selectedDay = `${selectedDate.getFullYear()}-${String(
+      selectedDate.getMonth() + 1,
+    ).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
 
     const currentBookings = bookings.filter((booking) => {
       const bookingDate = new Date(booking.jam);
@@ -93,26 +104,33 @@ export default function BookingModal({
 
       const bookingTime = bookingDate.toTimeString().slice(0, 5);
 
-      return bookingDay === selectedDate && bookingTime === time;
+      return bookingDay === selectedDay && bookingTime === time;
     });
 
     const usedSlot = currentBookings.length;
 
-    return 2 - usedSlot;
+    return MAX_SLOT - usedSlot;
   };
 
   const handleConfirmBooking = async () => {
     try {
       if (!selectedDate || !selectedTime) {
         alert("Tanggal dan jam wajib dipilih");
+
         return;
       }
 
       setLoading(true);
 
-      const bookingDateTime = new Date(
-        `${selectedDate}T${selectedTime}:00`,
-      ).toISOString();
+     const year = selectedDate.getFullYear();
+
+     const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+
+     const day = String(selectedDate.getDate()).padStart(2, "0");
+
+     const formattedDate = `${year}-${month}-${day}`;
+
+     const bookingDateTime = `${formattedDate}T${selectedTime}:00.000Z`;
 
       const payload = {
         jam: bookingDateTime,
@@ -153,9 +171,15 @@ export default function BookingModal({
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            initial={{
+              opacity: 0,
+            }}
+            animate={{
+              opacity: 1,
+            }}
+            exit={{
+              opacity: 0,
+            }}
             className="fixed inset-0 z-50 overflow-y-auto bg-[#0F172A]/60 backdrop-blur-sm p-4 flex items-center justify-center"
           >
             <motion.div
@@ -211,7 +235,7 @@ export default function BookingModal({
                 </button>
               </div>
 
-              {/* Section 1 */}
+              {/* Service */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-[#0F172A] mb-4">
                   1. Pilih Jenis Service
@@ -234,7 +258,7 @@ export default function BookingModal({
                 </div>
               </div>
 
-              {/* Section 2 */}
+              {/* Place */}
               <div className="mb-8">
                 <h3 className="text-lg font-semibold text-[#0F172A] mb-4">
                   2. Pilih Tempat Service
@@ -270,10 +294,12 @@ export default function BookingModal({
                   <div className="flex items-center gap-3 bg-[#F5F5F5] rounded-2xl px-4 h-14">
                     <CalendarDays className="w-5 h-5 text-gray-500" />
 
-                    <input
-                      type="date"
-                      value={selectedDate}
-                      onChange={(e) => setSelectedDate(e.target.value)}
+                    <DatePicker
+                      selected={selectedDate}
+                      onChange={(date) => setSelectedDate(date)}
+                      minDate={new Date()}
+                      dateFormat="dd MMMM yyyy"
+                      placeholderText="Pilih tanggal booking"
                       className="bg-transparent outline-none w-full text-[#0F172A]"
                     />
                   </div>
@@ -359,7 +385,9 @@ function ServiceCard({
 }: ServiceCardProps) {
   return (
     <motion.button
-      whileHover={{ y: -4 }}
+      whileHover={{
+        y: -4,
+      }}
       onClick={onClick}
       className={`rounded-[24px] p-5 text-left transition-all duration-300 border-2 ${
         active
