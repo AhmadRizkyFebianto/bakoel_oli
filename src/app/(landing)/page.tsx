@@ -13,6 +13,7 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import { useCart } from "@/src/lib/CartContext";
 import { useRouter } from "next/navigation";
+import BookingModal from "../../components/BookingModal";
 
 const FEATURES = [
   {
@@ -463,19 +464,32 @@ function SeeProductSection() {
 
 function ServiceSelectionSection() {
   const router = useRouter();
+  const [openModal, setOpenModal] = useState(false);
+
+  const [selectedPlace, setSelectedPlace] = useState<"rumah" | "bengkel">(
+    "rumah",
+  );
   const handleBookNow = () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
     if (!isLoggedIn) {
       router.push("/login");
       return;
     }
+
+    setSelectedPlace("bengkel");
+    setOpenModal(true);
   };
   const handleBookHome = () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
     if (!isLoggedIn) {
       router.push("/login");
       return;
     }
+
+    setSelectedPlace("rumah");
+    setOpenModal(true);
   };
   return (
     <section className="py-20 bg-blue-50/30">
@@ -488,55 +502,72 @@ function ServiceSelectionSection() {
         </p>
       </div>
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl">
-        <motion.div
-          whileHover={{ y: -10 }}
-          className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center"
-        >
-          <div className="w-auto h-48 mb-6">
-            <img
-              src="/assets/Rumah.png"
-              alt="Home service"
-              className="w-96 h-48"
-            />
-          </div>
-          <h3 className="text-2xl font-bold mb-3">Servis di Rumah</h3>
-          <p className="text-gray-500 mb-8 text-sm">
-            Mekanik handal kami siap datang langsung ke lokasi Anda
-            (Rumah/Kantor). Tidak perlu repot keluar rumah, kami yang datang
-            kepada Anda.
-          </p>
-          <button
-            className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors"
-            onClick={handleBookHome}
-          >
-            Booking Sekarang
-          </button>
-        </motion.div>
-        <motion.div
-          whileHover={{ y: -10 }}
-          className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center"
-        >
-          <div className="w-auto h-48 mb-6">
-            <img
-              src="/assets/Bengkel.png"
-              alt="Workshop service"
-              className="w-96 h-48"
-            />
-          </div>
-          <h3 className="text-2xl font-bold mb-3">Servis di Bengkel</h3>
-          <p className="text-gray-500 mb-8 text-sm">
-            Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda.
-            Nikmati fasilitas bengkel yang lengkap dan modern.
-          </p>
-          <button
-            className="w-full bg-brand-yellow text-brand-dark py-3 rounded-xl font-bold hover:brightness-105 transition-all"
-            onClick={handleBookNow}
-          >
-            Pilih Jadwal
-          </button>
-        </motion.div>
+        <ServiceCard
+          image="/assets/Rumah.png"
+          alt="Home Service"
+          title="Servis di Rumah"
+          description="Mekanik handal kami siap datang langsung ke lokasi Anda (Rumah/Kantor). Tidak perlu repot keluar rumah, kami yang datang kepada Anda."
+          buttonLabel="Booking Sekarang"
+          buttonClass="bg-brand-blue text-white hover:brightness-110"
+          onClick={handleBookHome}
+        />
+        <ServiceCard
+          image="/assets/Bengkel.png"
+          alt="Workshop"
+          title="Servis di Bengkel"
+          description="Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda. Nikmati fasilitas bengkel yang lengkap dan modern."
+          buttonLabel="Pilih Jadwal"
+          buttonClass="bg-brand-yellow text-brand-dark hover:brightness-105"
+          onClick={handleBookNow}
+        />
       </div>
+      <BookingModal
+        isOpen={openModal}
+        onClose={() => setOpenModal(false)}
+        defaultPlace={selectedPlace}
+      />
     </section>
+  );
+}
+
+interface ServiceCardProps {
+  image: string;
+  alt: string;
+  title: string;
+  description: string;
+  buttonLabel: string;
+  buttonClass: string;
+  onClick: () => void;
+}
+
+function ServiceCard({
+  image,
+  alt,
+  title,
+  description,
+  buttonLabel,
+  buttonClass,
+  onClick,
+}: ServiceCardProps) {
+  return (
+    <motion.div
+      whileHover={{ y: -10 }}
+      className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center"
+    >
+      <div className="w-auto h-48 mb-6">
+        <img src={image} alt={alt} className="w-96 h-48" />
+      </div>
+      <h3 className="text-3xl font-bold mb-4">{title}</h3>
+      <p className="text-gray-500 mb-10 text-sm leading-relaxed">
+        {description}
+      </p>
+      <button
+        onClick={onClick}
+        className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-md active:scale-95 ${buttonClass}`}
+      >
+        {buttonLabel}
+      </button>
+    </motion.div>
   );
 }
 
