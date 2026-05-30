@@ -151,7 +151,7 @@ export default function Navbar() {
         {/* ACTIONS */}
         <div className="flex items-center gap-3">
           {/* SEARCH */}
-          <div className="relative">
+          <div className="relative md:block hidden">
             <motion.button
               whileTap={{ scale: 0.9 }}
               whileHover={{ scale: 1.1 }}
