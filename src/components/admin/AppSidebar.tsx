@@ -40,7 +40,9 @@ export function AppSidebar() {
   const router = useRouter();
 
   const isActive = (path: string) =>
-    path === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(path);
+    path === "/dashboard"
+      ? pathname === "/dashboard"
+      : pathname.startsWith(path);
 
   const handleLogout = () => {
     // hapus local storage
@@ -51,7 +53,7 @@ export function AppSidebar() {
     window.dispatchEvent(new Event("storage"));
 
     // redirect ke halaman utama
-    router.push("/");
+    window.location.href = "/";
   };
 
   return (
@@ -97,7 +99,10 @@ export function AppSidebar() {
       <SidebarFooter className="border-t border-sidebar-border">
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton onClick={handleLogout} className="text-sidebar-foreground/80 hover:text-sidebar-foreground">
+            <SidebarMenuButton
+              onClick={handleLogout}
+              className="text-sidebar-foreground/80 hover:text-sidebar-foreground"
+            >
               <LogOut className="h-4 w-4" />
               {!collapsed && <span>Keluar</span>}
             </SidebarMenuButton>
