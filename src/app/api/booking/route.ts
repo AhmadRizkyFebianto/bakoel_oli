@@ -7,7 +7,7 @@ import jwt from "jsonwebtoken";
  * /api/booking:
  *   get:
  *     summary: Mendapatkan daftar booking service
- *     description: Mengembalikan daftar booking service. Jika role pengguna adalah admin, mengembalikan semua booking. Jika role adalah user biasa, hanya mengembalikan booking miliknya sendiri.
+ *     description: Mengembalikan daftar booking service beserta data worker yang ditugaskan. Admin mendapat semua data, user hanya miliknya.
  *     tags: [Booking]
  *     security:
  *       - cookieAuth: []
@@ -15,14 +15,20 @@ import jwt from "jsonwebtoken";
  *       200:
  *         description: Berhasil mengambil daftar booking
  *       401:
- *         description: Unauthorized - Token tidak valid atau tidak ada
+ *         description: Unauthorized
  *       404:
  *         description: User tidak ditemukan
  *       500:
  *         description: Error server internal
  *   post:
  *     summary: Membuat booking service baru
- *     description: Membuat pemesanan servis baru. Data nama, alamat, dan nomor HP akan otomatis diambil dari profil user melalui JWT.
+ *     description: >
+ *       Membuat pemesanan servis baru dengan validasi:
+ *       - Jam kerja 08:00 - 16:00
+ *       - Home Service: cek ketersediaan worker FREE
+ *       - Bengkel ringan: limit 5 per hari
+ *       - Bengkel ganti-oli: limit 1 per jam
+ *       - Kode antrian otomatis (Q-001, Q-002, dst)
  *     tags: [Booking]
  *     security:
  *       - cookieAuth: []
@@ -40,27 +46,29 @@ import jwt from "jsonwebtoken";
  *               jam:
  *                 type: string
  *                 format: date-time
- *                 description: Tanggal dan jam booking (harus di masa depan, contoh "2026-05-28T10:00:00.000Z")
  *               jenisService:
  *                 type: string
- *                 description: Jenis servis (contoh "servis dirumah" atau "servis di bengkel")
+ *                 enum: ["ganti-oli", "ringan"]
  *               tempatService:
  *                 type: string
- *                 description: Tempat lokasi servis (contoh alamat rumah jika servis di rumah, atau nama/lokasi bengkel)
+ *                 enum: ["rumah", "bengkel"]
  *     responses:
  *       201:
  *         description: Booking berhasil dibuat
  *       400:
- *         description: Request tidak valid (profil tidak lengkap, format jam salah, jam di masa lalu, jenis service salah, atau slot penuh)
+ *         description: Validasi gagal (jam kerja, slot penuh, worker busy, dll)
  *       401:
- *         description: Unauthorized - Token tidak valid atau tidak ada
+ *         description: Unauthorized
  *       404:
  *         description: User tidak ditemukan
  *       500:
  *         description: Error server internal
  *   put:
- *     summary: Memperbarui status booking service (penyelesaian atau pembatalan)
- *     description: Memperbarui status booking. Admin dapat mengubah status ke "Selesai" atau status lain. User biasa hanya diperbolehkan mengubah status menjadi "Batal" (pembatalan) untuk booking miliknya sendiri.
+ *     summary: Memperbarui status booking atau assign worker
+ *     description: >
+ *       Admin dapat assign workerId (auto status Working + worker BUSY),
+ *       atau ubah status ke Selesai/Batal (worker kembali FREE).
+ *       User biasa hanya bisa Batal pada booking sendiri.
  *     tags: [Booking]
  *     security:
  *       - cookieAuth: []
@@ -72,29 +80,28 @@ import jwt from "jsonwebtoken";
  *             type: object
  *             required:
  *               - bookingId
- *               - status
  *             properties:
  *               bookingId:
  *                 type: string
- *                 description: ID booking yang akan diperbarui
  *               status:
  *                 type: string
- *                 enum: ["Menunggu", "Selesai", "Batal"]
- *                 description: Status baru untuk booking
+ *                 enum: ["Menunggu", "Menunggu Teknisi", "Working", "Selesai", "Batal"]
+ *               workerId:
+ *                 type: string
+ *                 description: ID worker yang akan ditugaskan (hanya admin)
  *     responses:
  *       200:
- *         description: Status booking berhasil diperbarui
+ *         description: Booking berhasil diperbarui
  *       400:
  *         description: Input tidak valid
  *       403:
- *         description: Forbidden - Tidak memiliki akses untuk mengubah status ini
+ *         description: Forbidden
  *       404:
  *         description: Booking atau user tidak ditemukan
  *       500:
  *         description: Error server internal
  *   delete:
- *     summary: Menghapus / membatalkan booking service
- *     description: Menghapus pesanan booking dari database. Admin dapat menghapus booking apa saja. User biasa hanya dapat menghapus booking miliknya sendiri.
+ *     summary: Menghapus booking service
  *     tags: [Booking]
  *     security:
  *       - cookieAuth: []
@@ -104,43 +111,69 @@ import jwt from "jsonwebtoken";
  *         required: true
  *         schema:
  *           type: string
- *         description: ID booking yang akan dihapus
  *     responses:
  *       200:
  *         description: Booking berhasil dihapus
  *       400:
- *         description: ID booking tidak disertakan
+ *         description: bookingId tidak disertakan
  *       403:
- *         description: Forbidden - Tidak memiliki akses untuk menghapus booking ini
+ *         description: Forbidden
  *       404:
  *         description: Booking tidak ditemukan
  *       500:
  *         description: Error server internal
  */
 
+// ─── Helper ────────────────────────────────────────────────────────────────
+
+function getJWTUser(req: NextRequest): { id: string } | null {
+    const token = req.cookies.get("token")?.value;
+    if (!token) return null;
+    try {
+        return jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    } catch {
+        return null;
+    }
+}
+
+function startOfDay(date: Date): Date {
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+}
+
+function endOfDay(date: Date): Date {
+    const d = new Date(date);
+    d.setHours(23, 59, 59, 999);
+    return d;
+}
+
+function startOfHour(date: Date): Date {
+    const d = new Date(date);
+    d.setMinutes(0, 0, 0);
+    return d;
+}
+
+function endOfHour(date: Date): Date {
+    const d = new Date(date);
+    d.setMinutes(59, 59, 999);
+    return d;
+}
+
+// ─── POST ──────────────────────────────────────────────────────────────────
+
 export async function POST(req: NextRequest) {
     try {
-        const token = req.cookies.get("token")?.value;
-        if (!token) {
+        const decoded = getJWTUser(req);
+        if (!decoded) {
             return NextResponse.json({ message: "Unauthorized: Harap login terlebih dahulu" }, { status: 401 });
         }
 
-        let decodedToken: { id: string };
-        try {
-            decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
-        } catch (error) {
-            return NextResponse.json({ message: "Token tidak valid atau kedaluwarsa" }, { status: 401 });
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { id: decodedToken.id }
-        });
-
+        const user = await prisma.user.findUnique({ where: { id: decoded.id } });
         if (!user) {
             return NextResponse.json({ message: "User tidak ditemukan" }, { status: 404 });
         }
 
-        // Validasi kelengkapan profil (nama/username sudah pasti ada karena unique saat register)
         if (!user.alamat || !user.nomor_hp) {
             return NextResponse.json({
                 message: "Harap lengkapi alamat dan nomor HP di profil Anda terlebih dahulu sebelum melakukan booking."
@@ -150,13 +183,19 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { jam, jenisService, tempatService } = body;
 
-        if (!jenisService || !tempatService) {
-            return NextResponse.json({ message: "Kolom jenis service dan tempat service wajib diisi." }, { status: 400 });
+        // Validasi field wajib
+        if (!jam || !jenisService || !tempatService) {
+            return NextResponse.json({ message: "Kolom jam, jenis service, dan tempat service wajib diisi." }, { status: 400 });
         }
 
-        // Validasi jam
-        if (!jam) {
-            return NextResponse.json({ message: "Kolom jam booking wajib diisi." }, { status: 400 });
+        // Validasi jenisService
+        if (!["ganti-oli", "ringan"].includes(jenisService)) {
+            return NextResponse.json({ message: "Jenis service tidak valid. Harus 'ganti-oli' atau 'ringan'." }, { status: 400 });
+        }
+
+        // Validasi tempatService
+        if (!["rumah", "bengkel"].includes(tempatService)) {
+            return NextResponse.json({ message: "Tempat service tidak valid. Harus 'rumah' atau 'bengkel'." }, { status: 400 });
         }
 
         const bookingDate = new Date(jam);
@@ -168,29 +207,78 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: "Jam booking harus berada di masa depan." }, { status: 400 });
         }
 
-        // Validasi maksimal 2 booking per jam
-        // Menentukan awal dan akhir jam tersebut (contoh: 09:00:00.000 sampai 09:59:59.999)
-        const startOfHour = new Date(bookingDate);
-        startOfHour.setMinutes(0, 0, 0);
-        startOfHour.setMilliseconds(0);
+        // Validasi jam kerja (08:00 - 16:00) - pakai UTC hour sesuai input frontend
+        const bookingHour = bookingDate.getUTCHours();
+        if (bookingHour < 8 || bookingHour >= 16) {
+            return NextResponse.json({
+                message: "Jam booking harus berada di antara jam kerja (08:00 pagi sampai 16:00 sore)."
+            }, { status: 400 });
+        }
 
-        const endOfHour = new Date(bookingDate);
-        endOfHour.setMinutes(59, 59, 999);
-        endOfHour.setMilliseconds(999);
-
-        const bookingCount = await prisma.bookingService.count({
+        // Generate kode antrian berdasarkan jumlah booking di hari yang sama
+        const bookingCountToday = await prisma.bookingService.count({
             where: {
                 jam: {
-                    gte: startOfHour,
-                    lte: endOfHour
+                    gte: startOfDay(bookingDate),
+                    lte: endOfDay(bookingDate),
                 }
             }
         });
+        const kodeAntrian = `Q-${String(bookingCountToday + 1).padStart(3, "0")}`;
 
-        if (bookingCount >= 2) {
-            return NextResponse.json({
-                message: "Slot booking untuk jam tersebut sudah penuh. Maksimal 2 booking per jam."
-            }, { status: 400 });
+        let status = "Menunggu Teknisi";
+
+        if (tempatService === "rumah") {
+            // Cek ketersediaan worker FREE
+            const freeWorker = await prisma.worker.findFirst({ where: { status: "FREE" } });
+            if (!freeWorker) {
+                return NextResponse.json({
+                    message: "Semua teknisi sedang sibuk (busy). Tidak dapat melakukan booking Home Service saat ini."
+                }, { status: 400 });
+            }
+            status = "Menunggu Teknisi";
+
+        } else {
+            // tempatService === "bengkel"
+            if (jenisService === "ringan") {
+                // Limit 5 servis ringan per hari
+                const dailyCount = await prisma.bookingService.count({
+                    where: {
+                        tempatService: "bengkel",
+                        jenisService: "ringan",
+                        status: { notIn: ["Batal"] },
+                        jam: {
+                            gte: startOfDay(bookingDate),
+                            lte: endOfDay(bookingDate),
+                        }
+                    }
+                });
+                if (dailyCount >= 5) {
+                    return NextResponse.json({
+                        message: "Kuota servis ringan di bengkel untuk hari ini sudah penuh (maksimal 5 pesanan/hari)."
+                    }, { status: 400 });
+                }
+
+            } else {
+                // jenisService === "ganti-oli" - limit 1 per jam
+                const hourlyCount = await prisma.bookingService.count({
+                    where: {
+                        tempatService: "bengkel",
+                        jenisService: "ganti-oli",
+                        status: { notIn: ["Batal"] },
+                        jam: {
+                            gte: startOfHour(bookingDate),
+                            lte: endOfHour(bookingDate),
+                        }
+                    }
+                });
+                if (hourlyCount >= 1) {
+                    return NextResponse.json({
+                        message: "Slot ganti oli untuk jam tersebut sudah penuh (maksimal 1 pesanan/jam)."
+                    }, { status: 400 });
+                }
+            }
+            status = "Menunggu";
         }
 
         // Simpan booking
@@ -201,16 +289,14 @@ export async function POST(req: NextRequest) {
                 jenisService,
                 tempatService,
                 BookingSlot: 2,
-                status: "Menunggu"
+                status,
+                kodeAntrian,
             },
             include: {
                 user: {
-                    select: {
-                        username: true,
-                        nomor_hp: true,
-                        alamat: true
-                    }
-                }
+                    select: { username: true, nomor_hp: true, alamat: true }
+                },
+                worker: true,
             }
         });
 
@@ -225,24 +311,16 @@ export async function POST(req: NextRequest) {
     }
 }
 
+// ─── GET ───────────────────────────────────────────────────────────────────
+
 export async function GET(req: NextRequest) {
     try {
-        const token = req.cookies.get("token")?.value;
-        if (!token) {
+        const decoded = getJWTUser(req);
+        if (!decoded) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        let decodedToken: { id: string };
-        try {
-            decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
-        } catch (error) {
-            return NextResponse.json({ message: "Token tidak valid" }, { status: 401 });
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { id: decodedToken.id }
-        });
-
+        const user = await prisma.user.findUnique({ where: { id: decoded.id } });
         if (!user) {
             return NextResponse.json({ message: "User tidak ditemukan" }, { status: 404 });
         }
@@ -252,35 +330,22 @@ export async function GET(req: NextRequest) {
             bookings = await prisma.bookingService.findMany({
                 include: {
                     user: {
-                        select: {
-                            username: true,
-                            nomor_hp: true,
-                            alamat: true,
-                            email: true
-                        }
-                    }
+                        select: { username: true, nomor_hp: true, alamat: true, email: true }
+                    },
+                    worker: true,
                 },
-                orderBy: {
-                    jam: "asc"
-                }
+                orderBy: { jam: "asc" }
             });
         } else {
             bookings = await prisma.bookingService.findMany({
-                where: {
-                    userId: user.id
-                },
+                where: { userId: user.id },
                 include: {
                     user: {
-                        select: {
-                            username: true,
-                            nomor_hp: true,
-                            alamat: true
-                        }
-                    }
+                        select: { username: true, nomor_hp: true, alamat: true }
+                    },
+                    worker: true,
                 },
-                orderBy: {
-                    jam: "asc"
-                }
+                orderBy: { jam: "asc" }
             });
         }
 
@@ -292,52 +357,35 @@ export async function GET(req: NextRequest) {
     }
 }
 
+// ─── PUT ───────────────────────────────────────────────────────────────────
+
 export async function PUT(req: NextRequest) {
     try {
-        const token = req.cookies.get("token")?.value;
-        if (!token) {
+        const decoded = getJWTUser(req);
+        if (!decoded) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        let decodedToken: { id: string };
-        try {
-            decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
-        } catch (error) {
-            return NextResponse.json({ message: "Token tidak valid" }, { status: 401 });
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { id: decodedToken.id }
-        });
-
+        const user = await prisma.user.findUnique({ where: { id: decoded.id } });
         if (!user) {
             return NextResponse.json({ message: "User tidak ditemukan" }, { status: 404 });
         }
 
         const body = await req.json();
-        const { bookingId, status } = body;
+        const { bookingId, status, workerId } = body;
 
-        if (!bookingId || !status) {
-            return NextResponse.json({ message: "bookingId dan status wajib disertakan." }, { status: 400 });
+        if (!bookingId) {
+            return NextResponse.json({ message: "bookingId wajib disertakan." }, { status: 400 });
         }
 
-        // Validasi pilihan status
-        const validStatuses = ["Menunggu", "Selesai", "Batal"];
-        if (!validStatuses.includes(status)) {
-            return NextResponse.json({ message: "Status tidak valid. Harus 'Menunggu', 'Selesai', atau 'Batal'." }, { status: 400 });
-        }
-
-        // Cari booking
         const booking = await prisma.bookingService.findUnique({
             where: { id: bookingId }
         });
-
         if (!booking) {
             return NextResponse.json({ message: "Booking tidak ditemukan." }, { status: 404 });
         }
 
-        // Cek otorisasi
-        // User biasa hanya boleh mengubah status menjadi "Batal" pada booking miliknya sendiri
+        // ── Non-admin: hanya bisa Batal booking milik sendiri ──
         if (user.role !== "admin") {
             if (booking.userId !== user.id) {
                 return NextResponse.json({ message: "Forbidden: Anda tidak dapat mengubah booking milik orang lain." }, { status: 403 });
@@ -345,21 +393,80 @@ export async function PUT(req: NextRequest) {
             if (status !== "Batal") {
                 return NextResponse.json({ message: "Forbidden: Hanya admin yang dapat mengubah status selain 'Batal'." }, { status: 403 });
             }
+
+            const updatedBooking = await prisma.bookingService.update({
+                where: { id: bookingId },
+                data: { status: "Batal" },
+                include: { user: { select: { username: true, nomor_hp: true, alamat: true } }, worker: true }
+            });
+
+            // Bebaskan worker jika ada
+            if (booking.workerId) {
+                await prisma.worker.update({
+                    where: { id: booking.workerId },
+                    data: { status: "FREE" }
+                });
+            }
+
+            return NextResponse.json({ message: "Booking berhasil dibatalkan", booking: updatedBooking }, { status: 200 });
         }
 
-        // Update booking
+        // ── Admin: assign workerId → auto Working ──
+        if (workerId) {
+            const worker = await prisma.worker.findUnique({ where: { id: workerId } });
+            if (!worker) {
+                return NextResponse.json({ message: "Worker tidak ditemukan." }, { status: 404 });
+            }
+            if (worker.status === "BUSY") {
+                return NextResponse.json({ message: "Worker tersebut sedang BUSY. Pilih worker yang FREE." }, { status: 400 });
+            }
+
+            // Bebaskan worker lama jika ada
+            if (booking.workerId && booking.workerId !== workerId) {
+                await prisma.worker.update({
+                    where: { id: booking.workerId },
+                    data: { status: "FREE" }
+                });
+            }
+
+            // Set worker baru ke BUSY
+            await prisma.worker.update({
+                where: { id: workerId },
+                data: { status: "BUSY" }
+            });
+
+            const updatedBooking = await prisma.bookingService.update({
+                where: { id: bookingId },
+                data: { status: "Working", workerId },
+                include: { user: { select: { username: true, nomor_hp: true, alamat: true } }, worker: true }
+            });
+
+            return NextResponse.json({ message: "Worker berhasil ditugaskan, status booking menjadi Working", booking: updatedBooking }, { status: 200 });
+        }
+
+        // ── Admin: update status biasa ──
+        const validStatuses = ["Menunggu", "Menunggu Teknisi", "Working", "Selesai", "Batal"];
+        if (!status || !validStatuses.includes(status)) {
+            return NextResponse.json({
+                message: `Status tidak valid. Pilihan: ${validStatuses.join(", ")}`
+            }, { status: 400 });
+        }
+
+        let updateData: any = { status };
+
+        // Jika selesai atau batal, bebaskan worker
+        if (["Selesai", "Batal"].includes(status) && booking.workerId) {
+            await prisma.worker.update({
+                where: { id: booking.workerId },
+                data: { status: "FREE" }
+            });
+            updateData.workerId = null;
+        }
+
         const updatedBooking = await prisma.bookingService.update({
             where: { id: bookingId },
-            data: { status },
-            include: {
-                user: {
-                    select: {
-                        username: true,
-                        nomor_hp: true,
-                        alamat: true
-                    }
-                }
-            }
+            data: updateData,
+            include: { user: { select: { username: true, nomor_hp: true, alamat: true } }, worker: true }
         });
 
         return NextResponse.json({
@@ -373,24 +480,16 @@ export async function PUT(req: NextRequest) {
     }
 }
 
+// ─── DELETE ────────────────────────────────────────────────────────────────
+
 export async function DELETE(req: NextRequest) {
     try {
-        const token = req.cookies.get("token")?.value;
-        if (!token) {
+        const decoded = getJWTUser(req);
+        if (!decoded) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        let decodedToken: { id: string };
-        try {
-            decodedToken = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
-        } catch (error) {
-            return NextResponse.json({ message: "Token tidak valid" }, { status: 401 });
-        }
-
-        const user = await prisma.user.findUnique({
-            where: { id: decodedToken.id }
-        });
-
+        const user = await prisma.user.findUnique({ where: { id: decoded.id } });
         if (!user) {
             return NextResponse.json({ message: "User tidak ditemukan" }, { status: 404 });
         }
@@ -402,29 +501,26 @@ export async function DELETE(req: NextRequest) {
             return NextResponse.json({ message: "bookingId query parameter wajib disertakan." }, { status: 400 });
         }
 
-        // Cari booking
-        const booking = await prisma.bookingService.findUnique({
-            where: { id: bookingId }
-        });
-
+        const booking = await prisma.bookingService.findUnique({ where: { id: bookingId } });
         if (!booking) {
             return NextResponse.json({ message: "Booking tidak ditemukan." }, { status: 404 });
         }
 
-        // Cek otorisasi
-        // User biasa hanya boleh menghapus booking miliknya sendiri
         if (user.role !== "admin" && booking.userId !== user.id) {
             return NextResponse.json({ message: "Forbidden: Anda tidak dapat menghapus booking milik orang lain." }, { status: 403 });
         }
 
-        // Hapus booking
-        await prisma.bookingService.delete({
-            where: { id: bookingId }
-        });
+        // Bebaskan worker jika ada
+        if (booking.workerId) {
+            await prisma.worker.update({
+                where: { id: booking.workerId },
+                data: { status: "FREE" }
+            });
+        }
 
-        return NextResponse.json({
-            message: "Booking berhasil dihapus/dibatalkan"
-        }, { status: 200 });
+        await prisma.bookingService.delete({ where: { id: bookingId } });
+
+        return NextResponse.json({ message: "Booking berhasil dihapus/dibatalkan" }, { status: 200 });
 
     } catch (error) {
         console.error("Booking DELETE error:", error);
