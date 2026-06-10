@@ -95,7 +95,19 @@ model BookingService {
   BookingSlot   Int      @default(2)
   jenisService  String
   tempatService String
-  status        String   @default("Menunggu") // "Menunggu", "Selesai", "Batal"
+  status        String   @default("Menunggu Teknisi") // "Menunggu", "Menunggu Teknisi", "Working", "Selesai", "Batal"
+  kodeAntrian   String?  // Kode Antrian otomatis (contoh: Q-001)
+  workerId      String?
+  worker        Worker?  @relation(fields: [workerId], references: [id])
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+}
+
+model Worker {
+  id        String           @id @default(cuid())
+  name      String
+  status    String           @default("FREE") // "FREE" atau "BUSY"
+  bookings  BookingService[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }

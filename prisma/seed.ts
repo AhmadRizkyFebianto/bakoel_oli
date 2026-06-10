@@ -6,6 +6,20 @@ async function main() {
   // Hapus data lama agar tidak bentrok (idempotent)
   await prisma.product.deleteMany()
 
+  // Seed worker default jika belum ada
+  const workerCount = await prisma.worker.count()
+  if (workerCount === 0) {
+    await prisma.worker.createMany({
+      data: [
+        { name: 'Agus', status: 'FREE' },
+        { name: 'Budi', status: 'FREE' },
+      ],
+    })
+    console.log('Inserted: 2 default workers (Agus & Budi)')
+  } else {
+    console.log(`Workers sudah ada (${workerCount} worker), skip seeding worker.`)
+  }
+
   // baca file excel
   const workbook = XLSX.readFile(
     './prisma/data/product.xlsx'
@@ -59,4 +73,4 @@ main()
   })
   .finally(async () => {
     await prisma.$disconnect()
-  })
+  })
