@@ -10,6 +10,8 @@ import {
   CalendarDays,
   House,
   Warehouse,
+  Info,
+  AlertTriangle,
 } from "lucide-react";
 
 import { useEffect, useState } from "react";
@@ -21,7 +23,7 @@ import "react-datepicker/dist/react-datepicker.css";
 interface BookingModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultPlace: "rumah" | "bengkel";
+  defaultService: "oli" | "ringan";
 }
 
 interface ServiceCardProps {
@@ -30,20 +32,21 @@ interface ServiceCardProps {
   icon: React.ReactNode;
   title: string;
   subtitle?: string;
+  infoList?: string[];
 }
 
-const TIMES = ["09:00", "11:00", "13:00", "15:00"];
+const TIMES = ["08:00", "10:00", "13:00", "15:00"];
 
 const MAX_SLOT = 2;
 
 export default function BookingModal({
   isOpen,
   onClose,
-  defaultPlace,
+  defaultService,
 }: BookingModalProps) {
-  const [selectedService, setSelectedService] = useState("ganti-oli");
+  const [selectedPlace, setSelectedPlace] = useState("rumah");
 
-  const [selectedPlace, setSelectedPlace] = useState(defaultPlace);
+  const [selectedService, setSelectedService] = useState(defaultService);
 
   const [selectedTime, setSelectedTime] = useState("09:00");
 
@@ -57,9 +60,11 @@ export default function BookingModal({
 
   const [bookings, setBookings] = useState<any[]>([]);
 
+  const [showConfirm, setShowConfirm] = useState(false);
+
   useEffect(() => {
-    setSelectedPlace(defaultPlace);
-  }, [defaultPlace]);
+    setSelectedService(defaultService);
+  }, [defaultService]);
 
   useEffect(() => {
     const fetchBookings = async () => {
@@ -83,54 +88,69 @@ export default function BookingModal({
     selectedService,
     selectedPlace,
     selectedDate,
-    selectedTime,
+    // selectedTime,
   ];
 
   const completed = progressItems.filter(Boolean).length;
 
-  const progress = (completed / progressItems.length) * 100;
+  const progress = Math.round((completed / progressItems.length) * 100);
 
-  const getRemainingSlot = (time: string) => {
-    if (!selectedDate) return MAX_SLOT;
-
-    const selectedDay = `${selectedDate.getFullYear()}-${String(
-      selectedDate.getMonth() + 1,
-    ).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
-
-    const currentBookings = bookings.filter((booking) => {
-      const bookingDate = new Date(booking.jam);
-
-      const bookingDay = bookingDate.toISOString().split("T")[0];
-
-      const bookingTime = bookingDate.toTimeString().slice(0, 5);
-
-      return bookingDay === selectedDay && bookingTime === time;
-    });
-
-    const usedSlot = currentBookings.length;
-
-    return MAX_SLOT - usedSlot;
+  const summaryData = {
+    serviceName:
+      selectedService === "oli" ? "Service Ganti Oli" : "Service Sepeda Ringan",
+    placeName:
+      selectedPlace === "rumah"
+        ? "Home Service (Di Rumah)"
+        : "Workshop (Di Bengkel)",
+    tanggalFormatted: selectedDate
+      ? selectedDate.toLocaleDateString("id-ID", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        })
+      : "",
   };
 
-  const handleConfirmBooking = async () => {
+  // const getRemainingSlot = (time: string) => {
+  //   if (!selectedDate) return MAX_SLOT;
+
+  //   const selectedDay = `${selectedDate.getFullYear()}-${String(
+  //     selectedDate.getMonth() + 1,
+  //   ).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`;
+
+  //   const currentBookings = bookings.filter((booking) => {
+  //     const bookingDate = new Date(booking.jam);
+
+  //     const bookingDay = bookingDate.toISOString().split("T")[0];
+
+  //     const bookingTime = bookingDate.toTimeString().slice(0, 5);
+
+  //     return bookingDay === selectedDay && bookingTime === time;
+  //   });
+
+  //   const usedSlot = currentBookings.length;
+
+  //   return MAX_SLOT - usedSlot;
+  // };
+
+  const handleFinalSubmitBooking = async () => {
     try {
-      if (!selectedDate || !selectedTime) {
-        alert("Tanggal dan jam wajib dipilih");
+      if (!selectedDate) {
+        alert("Tanggal wajib dipilih");
 
         return;
       }
 
       setLoading(true);
 
-     const year = selectedDate.getFullYear();
+      const year = selectedDate.getFullYear();
 
-     const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
+      const month = String(selectedDate.getMonth() + 1).padStart(2, "0");
 
-     const day = String(selectedDate.getDate()).padStart(2, "0");
+      const day = String(selectedDate.getDate()).padStart(2, "0");
 
-     const formattedDate = `${year}-${month}-${day}`;
-
-     const bookingDateTime = `${formattedDate}T${selectedTime}:00.000Z`;
+      const bookingDateTime = `${year}-${month}-${day}T08:00:00.000Z`;
 
       const payload = {
         jam: bookingDateTime,
@@ -152,7 +172,24 @@ export default function BookingModal({
         throw new Error(result.message || "Booking gagal");
       }
 
-      setSuccessData(payload);
+      setSuccessData({
+        ...payload,
+        tanggalFormatted: selectedDate.toLocaleDateString("id-ID", {
+          weekday: "long",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        }),
+        // jamFormatted dihapus karena sudah tidak ada
+        serviceName:
+          selectedService === "oli"
+            ? "Service Ganti Oli"
+            : "Service Sepeda Ringan",
+        placeName:
+          selectedPlace === "rumah"
+            ? "Home Service (Di Rumah)"
+            : "Workshop (Di Bengkel)",
+      });
 
       setShowSuccess(true);
 
@@ -242,19 +279,33 @@ export default function BookingModal({
                 </h3>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <ServiceCard
-                    active={selectedService === "ganti-oli"}
-                    onClick={() => setSelectedService("ganti-oli")}
-                    icon={<Droplets />}
-                    title="Service Ganti Oli"
-                  />
+                  {(!selectedService || selectedService === "oli") && (
+                    <ServiceCard
+                      active={selectedService === "oli"}
+                      onClick={() =>
+                        // Jika sudah aktif dan diklik lagi, maka batalkan pilihan (set ke null/kosong)
+                        setSelectedService(
+                          selectedService === "oli" ? null : "oli",
+                        )
+                      }
+                      icon={<Droplets />}
+                      title="Service Ganti Oli"
+                    />
+                  )}
 
-                  <ServiceCard
-                    active={selectedService === "ringan"}
-                    onClick={() => setSelectedService("ringan")}
-                    icon={<Wrench />}
-                    title="Service Sepeda Ringan"
-                  />
+                  {(!selectedService || selectedService === "ringan") && (
+                    <ServiceCard
+                      active={selectedService === "ringan"}
+                      onClick={() =>
+                        // Jika sudah aktif dan diklik lagi, maka batalkan pilihan (set ke null/kosong)
+                        setSelectedService(
+                          selectedService === "ringan" ? null : "ringan",
+                        )
+                      }
+                      icon={<Wrench />}
+                      title="Service Sepeda Ringan"
+                    />
+                  )}
                 </div>
               </div>
 
@@ -271,6 +322,14 @@ export default function BookingModal({
                     icon={<House />}
                     title="Di Rumah"
                     subtitle="Home Service"
+                    infoList={[
+                      "Teknisi datang ke lokasi Anda",
+                      "Ganti oli & service ringan",
+                      "Pemeriksaan menyeluruh",
+                      "Konsultasi langsung",
+                      "Tidak perlu antre",
+                      "Hemat waktu & tenaga",
+                    ]}
                   />
 
                   <ServiceCard
@@ -279,6 +338,14 @@ export default function BookingModal({
                     icon={<Warehouse />}
                     title="Di Bengkel"
                     subtitle="Workshop"
+                    infoList={[
+                      "Semua layanan service standar",
+                      "Peralatan service lengkap",
+                      "Pemeriksaan lebih detail",
+                      "Sparepart lebih lengkap",
+                      "Penanganan kerusakan kompleks",
+                      "Area tunggu nyaman",
+                    ]}
                   />
                 </div>
               </div>
@@ -306,7 +373,7 @@ export default function BookingModal({
                 </div>
 
                 {/* Time */}
-                <div>
+                {/* <div>
                   <h3 className="text-lg font-semibold text-[#0F172A] mb-4">
                     4. Pilih Jam
                   </h3>
@@ -341,13 +408,13 @@ export default function BookingModal({
                       );
                     })}
                   </div>
-                </div>
+                </div> */}
               </div>
 
               {/* Footer */}
               <div>
                 <button
-                  onClick={handleConfirmBooking}
+                  onClick={() => setShowConfirm(true)}
                   disabled={progress !== 100 || loading}
                   className={`w-full h-14 rounded-full font-bold text-lg transition-all duration-300 ${
                     progress === 100 && !loading
@@ -355,7 +422,7 @@ export default function BookingModal({
                       : "bg-gray-300 text-gray-500 cursor-not-allowed"
                   }`}
                 >
-                  {loading ? "Memproses..." : "Konfirmasi Booking"}
+                  {loading ? "Memproses..." : "Lanjutkan"}
                 </button>
 
                 <p className="text-center text-sm text-gray-500 mt-4">
@@ -367,6 +434,14 @@ export default function BookingModal({
         )}
       </AnimatePresence>
 
+      <BookingConfirmModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleFinalSubmitBooking}
+        loading={loading}
+        data={summaryData}
+      />
+
       <BookingSuccessModal
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
@@ -376,13 +451,113 @@ export default function BookingModal({
   );
 }
 
+interface BookingConfirmModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  onConfirm: () => void;
+  loading: boolean;
+  data: {
+    serviceName: string;
+    placeName: string;
+    tanggalFormatted: string;
+  };
+}
+
+function BookingConfirmModal({
+  isOpen,
+  onClose,
+  onConfirm,
+  loading,
+  data,
+}: BookingConfirmModalProps) {
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[55] flex items-center justify-center p-4 bg-[#0F172A]/70 backdrop-blur-sm"
+        >
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0, y: 15 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.9, opacity: 0, y: 15 }}
+            className="bg-white rounded-[28px] w-full max-w-md p-6 shadow-2xl"
+          >
+            <div className="flex flex-col items-center text-center mb-5">
+              <div className="w-14 h-14 bg-amber-50 rounded-full flex items-center justify-center mb-3">
+                <AlertTriangle className="w-7 h-7 text-amber-500" />
+              </div>
+              <h3 className="text-xl font-bold text-[#0F172A]">
+                Periksa Kembali Jadwal Anda
+              </h3>
+              <p className="text-gray-500 text-sm mt-1">
+                Apakah data pesanan di bawah ini sudah sesuai?
+              </p>
+            </div>
+
+            {/* Kotak Ringkasan */}
+            <div className="bg-gray-50 border border-gray-100 rounded-2xl p-4 mb-6 text-sm space-y-3">
+              <div className="flex justify-between">
+                <span className="text-gray-400">Layanan:</span>
+                <span className="font-semibold text-[#0F172A]">
+                  {data.serviceName}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Lokasi:</span>
+                <span className="font-semibold text-[#0F172A]">
+                  {data.placeName}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-400">Tanggal:</span>
+                <span className="font-semibold text-[#0F172A]">
+                  {data.tanggalFormatted}
+                </span>
+              </div>
+            </div>
+
+            {/* Tombol Pilihan */}
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={onConfirm}
+                disabled={loading}
+                className="w-full h-12 bg-[#0F172A] text-white rounded-xl font-bold transition-colors hover:bg-black disabled:bg-gray-400"
+              >
+                {loading ? "Mengirim Pesanan..." : "Ya, Konfirmasi Booking"}
+              </button>
+              <button
+                onClick={onClose}
+                disabled={loading}
+                className="w-full h-12 bg-gray-100 text-gray-700 rounded-xl font-semibold transition-colors hover:bg-gray-200 disabled:opacity-50"
+              >
+                Periksa Kembali
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
+}
+
 function ServiceCard({
   active,
   onClick,
   icon,
   title,
   subtitle,
+  infoList,
 }: ServiceCardProps) {
+  const [showInfo, setShowInfo] = useState(false);
+
+  const toggleInfo = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Mencegah card utama ikut ter-klik/aktif
+    setShowInfo(!showInfo);
+  };
+
   return (
     <motion.button
       whileHover={{
@@ -395,21 +570,66 @@ function ServiceCard({
           : "border-gray-200 bg-white"
       }`}
     >
-      <div className="flex items-center gap-4">
-        <div
-          className={`w-12 h-12 rounded-full flex items-center justify-center ${
-            active ? "bg-[#FACC15]" : "bg-[#F5F5F5]"
-          }`}
-        >
-          {icon}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div
+            className={`w-12 h-12 rounded-full flex items-center justify-center ${
+              active ? "bg-[#FACC15]" : "bg-[#F5F5F5]"
+            }`}
+          >
+            {icon}
+          </div>
+
+          <div>
+            <h4 className="font-semibold text-[#0F172A]">{title}</h4>
+
+            {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+          </div>
         </div>
-
-        <div>
-          <h4 className="font-semibold text-[#0F172A]">{title}</h4>
-
-          {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+        <div className="">
+          {infoList && infoList.length > 0 && (
+            <button
+              onClick={toggleInfo}
+              className={`p-1.5 rounded-full transition-colors ${
+                showInfo
+                  ? "bg-[#0F172A] text-white"
+                  : "bg-[#FACC15] hover:bg-[#e6c12d] text-black"
+              }`}
+              title="Lihat Detail Layanan"
+            >
+              <Info size={18} />
+            </button>
+          )}
         </div>
       </div>
+      <AnimatePresence initial={false}>
+        {showInfo && infoList && (
+          <motion.div
+            initial={{ height: 0, opacity: 0, marginTop: 0 }}
+            animate={{ height: "auto", opacity: 1, marginTop: 16 }}
+            exit={{ height: 0, opacity: 0, marginTop: 0 }}
+            transition={{ duration: 0.2, ease: "easeInOut" }}
+            className="overflow-hidden border-t border-gray-200/60 pt-4 w-full"
+          >
+            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Layanan yang didapat:
+            </p>
+            <ul className="space-y-1.5">
+              {infoList.map((item, index) => (
+                <li
+                  key={index}
+                  className="text-sm text-gray-600 flex items-start gap-2"
+                >
+                  <span className="text-[#FACC15] font-bold text-xs mt-0.5">
+                    ✓
+                  </span>
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.button>
   );
 }

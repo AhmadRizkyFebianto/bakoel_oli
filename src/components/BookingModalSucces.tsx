@@ -9,7 +9,6 @@ interface BookingSuccessModalProps {
   bookingData: {
     jenisService: string;
     tempatService: string;
-    jam: string;
   } | null;
 }
 
@@ -20,15 +19,10 @@ export default function BookingSuccessModal({
 }: BookingSuccessModalProps) {
   if (!bookingData) return null;
 
-  const formattedDate = new Date(bookingData.jam).toLocaleDateString("id-ID", {
+  const formattedDate = new Date().toLocaleDateString("id-ID", {
     day: "numeric",
     month: "long",
     year: "numeric",
-  });
-
-  const formattedTime = new Date(bookingData.jam).toLocaleTimeString("id-ID", {
-    hour: "2-digit",
-    minute: "2-digit",
   });
 
   return (
@@ -105,17 +99,6 @@ export default function BookingSuccessModal({
 
                 <span className="font-semibold text-[#0F172A]">
                   {formattedDate}
-                </span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-gray-500">
-                  <Clock3 className="w-4 h-4" />
-                  Jam
-                </div>
-
-                <span className="font-semibold text-[#0F172A]">
-                  {formattedTime}
                 </span>
               </div>
             </div>
