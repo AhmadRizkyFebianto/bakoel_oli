@@ -2,7 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Search, Package, Info, Phone, MapPin, CalendarDays } from "lucide-react";
+import {
+  Search,
+  Package,
+  Info,
+  Phone,
+  MapPin,
+  CalendarDays,
+  Handshake,
+} from "lucide-react";
 
 import { AdminLayout } from "@/src/components/admin/AdminLayout";
 import { Button } from "@/src/components/ui/button";
@@ -34,7 +42,13 @@ import {
 } from "@/src/components/ui/dialog";
 import { Toaster } from "@/src/components/ui/sonner";
 
-import { type Order, type OrderStatus, formatRupiah, formatTanggal } from "@/src/lib/orders.store";
+import {
+  type Order,
+  type OrderStatus,
+  formatRupiah,
+  formatTanggal,
+} from "@/src/lib/orders.store";
+import Link from "next/link";
 
 function statusBadge(s: OrderStatus) {
   const map: Record<OrderStatus, string> = {
@@ -97,7 +111,12 @@ export default function PesananPage() {
   }, []);
 
   const statuses = useMemo(
-    () => ["Semua", "Belum Bayar", "Sudah Bayar"] as const,
+    () =>
+      [
+        { label: "Semua", value: "Semua" },
+        { label: "Belum Bayar", value: "BelumBayar" },
+        { label: "Sudah Bayar", value: "SudahBayar" },
+      ] as const,
     [],
   );
 
@@ -109,7 +128,11 @@ export default function PesananPage() {
         !q ||
         o.namaPemesan.toLowerCase().includes(q) ||
         o.alamat.toLowerCase().includes(q) ||
-        o.items.some((it) => it.namaProduk.toLowerCase().includes(q) || (it.sku ?? "").toLowerCase().includes(q));
+        o.items.some(
+          (it) =>
+            it.namaProduk.toLowerCase().includes(q) ||
+            (it.sku ?? "").toLowerCase().includes(q),
+        );
       return matchS && matchQ;
     });
   }, [orders, query, status]);
@@ -121,7 +144,10 @@ export default function PesananPage() {
     return { total, belum_bayar, sudah_bayar };
   }, [orders]);
 
-  const active = useMemo(() => (activeId ? orders.find((o) => o.id === activeId) : null), [activeId, orders]);
+  const active = useMemo(
+    () => (activeId ? orders.find((o) => o.id === activeId) : null),
+    [activeId, orders],
+  );
 
   const clearActive = () => setActiveId(null);
 
@@ -129,24 +155,50 @@ export default function PesananPage() {
     <AdminLayout
       title="Monitoring Data Pesanan"
       subtitle="Kelola seluruh data pesanan pelanggan."
+      actions={
+        <Button asChild className="shadow-[var(--shadow-yellow)]">
+          <Link href="/dashboard/pesanan/booking-service">
+            <Handshake className="h-4 w-4" /> Cek Booking Service
+          </Link>
+        </Button>
+      }
     >
       <Toaster richColors position="top-right" />
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {[
-          { label: "Total Pesanan", value: stats.total, accent: "bg-primary/15 text-foreground" },
-          { label: "Belum Bayar", value: stats.belum_bayar, accent: "bg-chart-4/20 text-foreground" },
-          { label: "Sudah Bayar", value: stats.sudah_bayar, accent: "bg-success/20 text-foreground" },
+          {
+            label: "Total Pesanan",
+            value: stats.total,
+            accent: "bg-primary/15 text-foreground",
+          },
+          {
+            label: "Belum Bayar",
+            value: stats.belum_bayar,
+            accent: "bg-chart-4/20 text-foreground",
+          },
+          {
+            label: "Sudah Bayar",
+            value: stats.sudah_bayar,
+            accent: "bg-success/20 text-foreground",
+          },
         ].map((s) => (
-          <Card key={s.label} className="p-5 border-border shadow-[var(--shadow-card)]">
+          <Card
+            key={s.label}
+            className="p-5 border-border shadow-[var(--shadow-card)]"
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                   {s.label}
                 </p>
-                <p className="text-3xl font-black mt-2 text-foreground">{s.value}</p>
+                <p className="text-3xl font-black mt-2 text-foreground">
+                  {s.value}
+                </p>
               </div>
-              <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${s.accent}`}>
+              <div
+                className={`h-11 w-11 rounded-xl flex items-center justify-center ${s.accent}`}
+              >
                 <Package className="h-5 w-5" />
               </div>
             </div>
@@ -161,7 +213,7 @@ export default function PesananPage() {
             <Input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Cari pemesan..."
+              placeholder="Cari pemesan, produk, dsb..."
               className="pl-9 bg-muted/40 border-0"
             />
           </div>
@@ -172,8 +224,8 @@ export default function PesananPage() {
             </SelectTrigger>
             <SelectContent>
               {statuses.map((st) => (
-                <SelectItem key={st} value={st}>
-                  {st}
+                <SelectItem key={st.value} value={st.value}>
+                  {st.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -184,15 +236,29 @@ export default function PesananPage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30 hover:bg-muted/30">
-                <TableHead className="font-bold text-foreground">Nama Pemesan</TableHead>
-                <TableHead className="font-bold text-foreground">Alamat</TableHead>
-                <TableHead className="font-bold text-foreground">Produk</TableHead>
-                <TableHead className="font-bold text-foreground text-right">Total</TableHead>
-                <TableHead className="font-bold text-foreground text-right">Qty</TableHead>
+                <TableHead className="font-bold text-foreground">
+                  Nama Pemesan
+                </TableHead>
+                {/* <TableHead className="font-bold text-foreground">Alamat</TableHead> */}
+                <TableHead className="font-bold text-foreground">
+                  Produk
+                </TableHead>
+                <TableHead className="font-bold text-foreground text-right">
+                  Total
+                </TableHead>
+                <TableHead className="font-bold text-foreground text-right">
+                  Qty
+                </TableHead>
 
-                <TableHead className="font-bold text-foreground">Tanggal</TableHead>
-                <TableHead className="font-bold text-foreground">Status</TableHead>
-                <TableHead className="font-bold text-foreground text-right">Aksi</TableHead>
+                <TableHead className="font-bold text-foreground">
+                  Tanggal
+                </TableHead>
+                <TableHead className="font-bold text-foreground">
+                  Status
+                </TableHead>
+                <TableHead className="font-bold text-foreground text-right">
+                  Aksi
+                </TableHead>
               </TableRow>
             </TableHeader>
 
@@ -202,140 +268,175 @@ export default function PesananPage() {
                   <TableCell colSpan={8} className="text-center py-12">
                     <div className="flex flex-col items-center justify-center gap-3">
                       <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-                      <p className="text-sm text-muted-foreground animate-pulse">Memuat data pesanan real-time...</p>
+                      <p className="text-sm text-muted-foreground animate-pulse">
+                        Memuat data pesanan real-time...
+                      </p>
                     </div>
                   </TableCell>
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-12 text-muted-foreground">
+                  <TableCell
+                    colSpan={8}
+                    className="text-center py-12 text-muted-foreground"
+                  >
                     Tidak ada pesanan ditemukan.
                   </TableCell>
                 </TableRow>
-              ) : filtered.map((o) => (
-                <TableRow key={o.id} className="hover:bg-muted/30">
-                  <TableCell className="min-w-44">
-                    <TruncatedText text={o.namaPemesan} lines={1} />
-                  </TableCell>
+              ) : (
+                filtered.map((o) => (
+                  <TableRow key={o.id} className="hover:bg-muted/30">
+                    <TableCell className="min-w-44">
+                      <TruncatedText text={o.namaPemesan} lines={1} />
+                    </TableCell>
 
-                  <TableCell className="min-w-56">
+                    {/* <TableCell className="min-w-56">
                     <TruncatedText text={o.alamat} lines={1} />
-                  </TableCell>
+                  </TableCell> */}
 
-                  <TableCell className="min-w-56">
-                    <TruncatedText text={joinItems(o.items)} lines={1} />
-                  </TableCell>
+                    <TableCell className="min-w-56">
+                      <TruncatedText text={joinItems(o.items)} lines={1} />
+                    </TableCell>
 
-                  <TableCell className="text-right font-bold text-foreground">{formatRupiah(o.total)}</TableCell>
+                    <TableCell className="text-right font-bold text-foreground">
+                      {formatRupiah(o.total)}
+                    </TableCell>
 
-                  <TableCell className="text-right font-semibold text-foreground">
-                    {o.items.reduce((acc, it) => acc + it.qty, 0)}
-                  </TableCell>
+                    <TableCell className="text-right font-semibold text-foreground">
+                      {o.items.reduce((acc, it) => acc + it.qty, 0)}
+                    </TableCell>
 
-                  <TableCell className="text-muted-foreground">
-                    <TruncatedText text={formatTanggal(o.tglPesan)} lines={1} />
-                  </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      <TruncatedText
+                        text={formatTanggal(o.tglPesan)}
+                        lines={1}
+                      />
+                    </TableCell>
 
-                  <TableCell>{statusBadge(o.status)}</TableCell>
+                    <TableCell>{statusBadge(o.status)}</TableCell>
 
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Dialog
-                        open={activeId === o.id}
-                        onOpenChange={(open) => (open ? setActiveId(o.id) : clearActive())}
-                      >
-                        <DialogTrigger asChild>
-                          <Button
-                            variant="outline"
-                            className="shadow-[var(--shadow-yellow)]"
-                            onClick={() => setActiveId(o.id)}
-                          >
-                            <Info className="h-4 w-4 mr-2" /> Detail
-                          </Button>
-                        </DialogTrigger>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Dialog
+                          open={activeId === o.id}
+                          onOpenChange={(open) =>
+                            open ? setActiveId(o.id) : clearActive()
+                          }
+                        >
+                          <DialogTrigger asChild>
+                            <Button
+                              variant="outline"
+                              className="shadow-[var(--shadow-yellow)]"
+                              onClick={() => setActiveId(o.id)}
+                            >
+                              <Info className="h-4 w-4 mr-2" /> Detail
+                            </Button>
+                          </DialogTrigger>
 
-                        <DialogContent className="max-w-3xl">
-                          <DialogHeader>
-                            <DialogTitle>Detail Pesanan</DialogTitle>
-                            <DialogDescription>
-                              {o.namaPemesan} • {formatTanggal(o.tglPesan)}
-                            </DialogDescription>
-                          </DialogHeader>
+                          <DialogContent className="max-w-3xl">
+                            <DialogHeader>
+                              <DialogTitle>Detail Pesanan</DialogTitle>
+                              <DialogDescription>
+                                {o.namaPemesan} • {formatTanggal(o.tglPesan)}
+                              </DialogDescription>
+                            </DialogHeader>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <Card className="border-border shadow-[var(--shadow-card)] p-4">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Phone className="h-4 w-4 text-muted-foreground" />
-                                <p className="font-semibold text-foreground">Kontak</p>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                {o.noHp ? <TruncatedText text={o.noHp} lines={2} /> : "-"}
-                              </p>
-
-                              <div className="flex items-center gap-2 mt-4 mb-2">
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                <p className="font-semibold text-foreground">Alamat</p>
-                              </div>
-                              <p className="text-sm text-muted-foreground">
-                                <TruncatedText text={o.alamat} lines={2} />
-                              </p>
-
-                              <div className="flex items-center gap-2 mt-4 mb-2">
-                                <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                                <p className="font-semibold text-foreground">Tanggal</p>
-                              </div>
-                              <p className="text-sm text-muted-foreground">{formatTanggal(o.tglPesan)}</p>
-
-                              {o.catatan && (
-                                <div className="mt-4">
-                                  <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                                    Catatan
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <Card className="border-border shadow-[var(--shadow-card)] p-4">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <Phone className="h-4 w-4 text-muted-foreground" />
+                                  <p className="font-semibold text-foreground">
+                                    Kontak
                                   </p>
-                                  <p className="text-sm text-muted-foreground mt-1">{o.catatan}</p>
                                 </div>
-                              )}
-                            </Card>
+                                <p className="text-sm text-muted-foreground">
+                                  {o.noHp ? (
+                                    <TruncatedText text={o.noHp} lines={2} />
+                                  ) : (
+                                    "-"
+                                  )}
+                                </p>
 
-                            <Card className="border-border shadow-[var(--shadow-card)] p-4">
-                              <div className="flex items-center justify-between mb-3">
-                                <p className="font-semibold text-foreground">Produk</p>
-                                {statusBadge(o.status)}
-                              </div>
+                                <div className="flex items-center gap-2 mt-4 mb-2">
+                                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                                  <p className="font-semibold text-foreground">
+                                    Alamat
+                                  </p>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  <TruncatedText text={o.alamat} lines={2} />
+                                </p>
 
-                              <div className="space-y-3">
-                                {o.items.map((it, idx) => (
-                                  <div key={`${o.id}-${idx}`} className="flex items-start justify-between gap-3">
-                                    <div className="min-w-0">
-                                      <p className="text-sm font-semibold text-foreground">
-                                        <TruncatedText text={it.namaProduk} lines={1} />
-                                      </p>
-                                      <p className="text-xs text-muted-foreground mt-1 font-mono">
-                                        {it.sku ? `SKU: ${it.sku}` : ""}
-                                      </p>
-                                      <p className="text-xs text-muted-foreground mt-1">Qty: {it.qty}</p>
+                                <div className="flex items-center gap-2 mt-4 mb-2">
+                                  <CalendarDays className="h-4 w-4 text-muted-foreground" />
+                                  <p className="font-semibold text-foreground">
+                                    Tanggal
+                                  </p>
+                                </div>
+                                <p className="text-sm text-muted-foreground">
+                                  {formatTanggal(o.tglPesan)}
+                                </p>
+                              </Card>
+
+                              <Card className="border-border shadow-[var(--shadow-card)] p-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <p className="font-semibold text-foreground">
+                                    Produk
+                                  </p>
+                                  {statusBadge(o.status)}
+                                </div>
+
+                                <div className="space-y-3">
+                                  {o.items.map((it, idx) => (
+                                    <div
+                                      key={`${o.id}-${idx}`}
+                                      className="flex items-start justify-between gap-3"
+                                    >
+                                      <div className="min-w-0">
+                                        <p className="text-sm font-semibold text-foreground">
+                                          <TruncatedText
+                                            text={it.namaProduk}
+                                            lines={1}
+                                          />
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1 font-mono">
+                                          {it.sku ? `SKU: ${it.sku}` : ""}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          Qty: {it.qty}
+                                        </p>
+                                      </div>
+                                      <div className="text-right">
+                                        <p className="text-sm font-bold text-foreground">
+                                          {formatRupiah(
+                                            it.qty * it.hargaSatuan,
+                                          )}
+                                        </p>
+                                        <p className="text-xs text-muted-foreground">
+                                          {formatRupiah(it.hargaSatuan)} / pcs
+                                        </p>
+                                      </div>
                                     </div>
-                                    <div className="text-right">
-                                      <p className="text-sm font-bold text-foreground">{formatRupiah(it.qty * it.hargaSatuan)}</p>
-                                      <p className="text-xs text-muted-foreground">{formatRupiah(it.hargaSatuan)} / pcs</p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
+                                  ))}
+                                </div>
 
-                              <div className="border-t border-border mt-4 pt-3 flex items-center justify-between">
-                                <p className="text-sm text-muted-foreground">Total</p>
-                                <p className="text-sm font-bold text-foreground">{formatRupiah(o.total)}</p>
-                              </div>
-                            </Card>
-                          </div>
-                        </DialogContent>
-                      </Dialog>
-
-
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                                <div className="border-t border-border mt-4 pt-3 flex items-center justify-between">
+                                  <p className="text-sm text-muted-foreground">
+                                    Total
+                                  </p>
+                                  <p className="text-sm font-bold text-foreground">
+                                    {formatRupiah(o.total)}
+                                  </p>
+                                </div>
+                              </Card>
+                            </div>
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </div>
@@ -349,4 +450,3 @@ export default function PesananPage() {
     </AdminLayout>
   );
 }
-

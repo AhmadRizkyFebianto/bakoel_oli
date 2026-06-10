@@ -7,6 +7,7 @@ import Script from "next/script";
 
 import Navbar from "@/src/components/Navbar";
 import Footer from "@/src/components/Footer";
+import WhatsAppButton from "@/src/components/WhatsAppButton";
 
 import { CartProvider } from "@/src/lib/CartContext";
 
@@ -26,7 +27,11 @@ export default function RootLayout({
         <CartProvider>
           {/* MIDTRANS SNAP */}
           <Script
-            src="https://app.sandbox.midtrans.com/snap/snap.js"
+            src={
+              process.env.MIDTRANS_IS_PRODUCTION === "true"
+                ? "https://app.midtrans.com/snap/snap.js"
+                : "https://app.sandbox.midtrans.com/snap/snap.js"
+            }
             data-client-key={process.env.NEXT_PUBLIC_MIDTRANS_CLIENT_KEY}
             strategy="beforeInteractive"
           />
@@ -36,6 +41,7 @@ export default function RootLayout({
           <main className="pt-24">{children}</main>
 
           <Footer />
+          <WhatsAppButton />
         </CartProvider>
       </body>
     </html>

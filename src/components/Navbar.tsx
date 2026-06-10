@@ -21,7 +21,7 @@ const NAV_LINKS = [
   { name: "Tentang Kami", path: "/tentang-kami" },
   { name: "Produk", path: "/produk" },
   { name: "Layanan", path: "/layanan" },
-  { name: "Kontak", path: "#" },
+  { name: "Kontak", path: "/kontak" },
 ];
 
 export default function Navbar() {
@@ -32,8 +32,11 @@ export default function Navbar() {
 
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   // CHECK LOGIN
   const checkLoginStatus = () => {
@@ -60,16 +63,38 @@ export default function Navbar() {
   useEffect(() => {
     setIsMenuOpen(false);
     setIsProfileOpen(false);
+    setIsSearchOpen(false);
   }, [pathname]);
 
   // LOGOUT
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    // Bersihkan local state client
     localStorage.removeItem("isLoggedIn");
     localStorage.removeItem("user");
-
     setIsLoggedIn(false);
 
-    router.push("/");
+    // Hapus cookie auth di server (httpOnly)
+    try {
+      await fetch("/api/auth/logout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+      });
+    } catch {
+      // abaikan error, tetap redirect
+    }
+
+    window.location.href = "/";
+  };
+
+  const handleSearchSubmit = () => {
+    const trimmedKeyword = searchKeyword.toLowerCase().trim();
+    if (!trimmedKeyword) {
+      router.push(`/produk`);
+    } else {
+      router.push(`/produk?search=${encodeURIComponent(trimmedKeyword)}`);
+    }
+    setIsSearchOpen(false);
+    setSearchKeyword("");
   };
 
   return (
@@ -94,7 +119,7 @@ export default function Navbar() {
             className="w-10 h-10"
           />
 
-          <span className="text-2xl font-extrabold tracking-tight text-brand-dark">
+          <span className="text-2xl font-extrabold tracking-tight text-brand-dark hidden md:block">
             BAKUL OLI
           </span>
         </Link>
@@ -126,13 +151,49 @@ export default function Navbar() {
         {/* ACTIONS */}
         <div className="flex items-center gap-3">
           {/* SEARCH */}
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            whileHover={{ scale: 1.1 }}
-            className="p-2 text-gray-600 hover:text-brand-yellow"
-          >
-            <Search className="w-5 h-5" />
-          </motion.button>
+          <div className="relative md:block hidden">
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              whileHover={{ scale: 1.1 }}
+              className="p-2 text-gray-600 hover:text-brand-yellow focus:outline-none transition-colors"
+              onClick={() => setIsSearchOpen(!isSearchOpen)}
+            >
+              <Search className="w-5 h-5" />
+            </motion.button>
+
+            <AnimatePresence>
+              {isSearchOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  transition={{ duration: 0.2 }}
+                  /* Class 'absolute right-0 mt-2' memaksa kotak ini melayang tepat di bawah tombol sebelah kanan */
+                  className="absolute -right-12 mt-3 w-72 sm:w-80 bg-white p-3 rounded-2xl shadow-xl border border-gray-100 flex items-center gap-2 z-50 animate-in fade-in zoom-in-95"
+                >
+                  <input
+                    type="text"
+                    placeholder="Ketik produk yang anda butuhkan..."
+                    className="w-full px-4 py-2.5 text-sm bg-gray-50 border-none rounded-xl outline-none focus:ring-2 focus:ring-brand-yellow text-gray-700 placeholder-gray-400 transition-all"
+                    autoFocus // Otomatis fokus ke text input saat pop-up terbuka
+                    value={searchKeyword}
+                    onChange={(e) => setSearchKeyword(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleSearchSubmit();
+                      }
+                    }}
+                  />
+                  <button
+                    className="bg-brand-yellow p-2.5 rounded-xl text-brand-dark hover:brightness-105 active:scale-95 transition-all shadow-sm"
+                    onClick={handleSearchSubmit}
+                  >
+                    <Search className="w-4 h-4" />
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* CART */}
           <Link href="/keranjang">
@@ -244,6 +305,52 @@ export default function Navbar() {
             </Link>
           )}
 
+          {isLoggedIn && (
+            <div className="md:hidden block relative">
+              <motion.button
+                whileTap={{ scale: 0.95 }}
+                onClick={() => setIsProfileOpen(!isProfileOpen)}
+                className="flex items-center gap-2 bg-gray-50 border border-gray-100 pl-2 pr-3 py-1.5 rounded-full hover:bg-gray-100 transition-all"
+              >
+                <div className="w-8 h-8 bg-brand-yellow rounded-full flex items-center justify-center">
+                  <User className="w-5 h-5 text-brand-dark" />
+                </div>
+
+                <motion.div animate={{ rotate: isProfileOpen ? 180 : 0 }}>
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                </motion.div>
+              </motion.button>
+
+              <AnimatePresence>
+                {isProfileOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-3 w-52 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden"
+                  >
+                    <Link
+                      href="/profile"
+                      className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50"
+                    >
+                      <User className="w-4 h-4" />
+                      Profil Saya
+                    </Link>
+
+                    <button
+                      onClick={handleLogout}
+                      className="flex items-center gap-3 w-full px-4 py-3 hover:bg-red-50 text-red-500"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Keluar
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          )}
+
           {/* MOBILE BUTTON */}
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -257,6 +364,41 @@ export default function Navbar() {
           </button>
         </div>
       </div>
+      {isMenuOpen && (
+        <div
+          className={`md:hidden mt-8 transition-all duration-300 ${
+            isScrolled
+              ? "bg-white/90 backdrop-blur-lg shadow-md py-3 px-6 space-y-3"
+              : "bg-white py-3 px-6 space-y-3"
+          }`}
+        >
+          {NAV_LINKS.map((link) => (
+            <Link
+              key={link.name}
+              href={link.path}
+              className={`block py-2 text-sm font-medium transition-colors ${
+                pathname === link.path
+                  ? "text-brand-yellow font-bold"
+                  : "text-gray-600 hover:text-brand-yellow"
+              }`}
+            >
+              {link.name}
+            </Link>
+          ))}
+          <div className="pt-2 border-t border-gray-100">
+            {!isLoggedIn && (
+              <>
+                <Link
+                  href="/login"
+                  className="block w-full text-center bg-brand-yellow px-6 py-2 rounded-lg font-bold text-sm text-brand-dark mt-2"
+                >
+                  Masuk
+                </Link>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </motion.nav>
   );
 }

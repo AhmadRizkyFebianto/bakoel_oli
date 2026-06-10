@@ -24,27 +24,39 @@ export default function Footer() {
             </h4>
             <ul className="space-y-4 text-gray-400 font-medium">
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
+                <a href="/" className="hover:text-white transition-colors">
                   Beranda
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
+                <a
+                  href="/tentang-kami"
+                  className="hover:text-white transition-colors"
+                >
                   Tentang Kami
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
+                <a
+                  href="/produk"
+                  className="hover:text-white transition-colors"
+                >
                   Produk
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
+                <a
+                  href="/layanan"
+                  className="hover:text-white transition-colors"
+                >
                   Layanan
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-primary transition-colors">
+                <a
+                  href="/kontak"
+                  className="hover:text-white transition-colors"
+                >
                   Kontak
                 </a>
               </li>
@@ -61,8 +73,8 @@ export default function Footer() {
                 <span className="font-bold text-gray-200">08.00 - 17.00</span>
               </li>
               <li className="flex justify-between">
-                <span>Minggu</span>
-                <span className="font-bold text-gray-200">09.00 - 15.00</span>
+                <span>Minggu & Hari Libur</span>
+                <span className="font-bold text-gray-200">Tutup</span>
               </li>
             </ul>
           </div>
@@ -77,14 +89,14 @@ export default function Footer() {
                   <Building2 size={18} className="text-brand-yellow" />
                 </div>
                 <span className="text-sm">
-                  Jl. Raya Surabaya No. 123, Surabaya, Jawa Timur
+                  Jl.Sidotopo wetan 2/87, Surabaya, Jawa Timur, 60128
                 </span>
               </li>
               <li className="flex gap-4">
                 <div className="flex-shrink-0 mt-1">
                   <Clock size={18} className="text-brand-yellow" />
                 </div>
-                <span className="text-sm">+62 31 123 4567</span>
+                <span className="text-sm">+62 889-9152-0696</span>
               </li>
             </ul>
           </div>

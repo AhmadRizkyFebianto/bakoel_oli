@@ -1,19 +1,134 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Trash2, Check } from "lucide-react";
+import { Trash2, Check, UserCircle, X, ArrowRight } from "lucide-react";
 import Link from "next/link";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCart } from "@/src/lib/CartContext";
+import { useRouter } from "next/navigation";
 
+// =========================
+// PROFILE MODAL
+// =========================
+function ProfileIncompleteModal({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+      {/* Backdrop */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+        onClick={onClose}
+      />
+
+      {/* Modal */}
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        transition={{ type: "spring", stiffness: 300, damping: 25 }}
+        className="relative bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md z-10"
+      >
+        {/* Close */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center"
+        >
+          <X className="w-4 h-4 text-gray-500" />
+        </button>
+
+        {/* Icon */}
+        <div className="flex justify-center mb-6">
+          <div className="w-20 h-20 rounded-full bg-yellow-50 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-brand-yellow flex items-center justify-center">
+              <UserCircle className="w-8 h-8 text-gray-900" />
+            </div>
+          </div>
+        </div>
+
+        {/* Text */}
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">
+            Lengkapi Profil Anda
+          </h2>
+
+          <p className="text-gray-500 text-sm leading-relaxed">
+            Sebelum melanjutkan pembayaran, pastikan alamat dan nomor telepon
+            Anda sudah lengkap.
+          </p>
+        </div>
+
+        {/* Button */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.97 }}
+          onClick={() => router.push("/profile")}
+          className="w-full flex items-center justify-center gap-2 bg-brand-yellow text-gray-900 font-bold py-4 rounded-2xl hover:brightness-105 transition-all"
+        >
+          Lengkapi Profil
+          <ArrowRight className="w-4 h-4" />
+        </motion.button>
+      </motion.div>
+    </div>
+  );
+}
+
+// =========================
+// CART PAGE
+// =========================
 export default function CartPage() {
-  const { cart, removeFromCart, updateQuantity, clearCart, loading } =
-    useCart();
+  const {
+    cart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    loading,
+    fetchCart,
+  } = useCart();
 
   // =========================
-  // CHECKBOX STATE
+  // STATE
   // =========================
   const [selectedItems, setSelectedItems] = useState<string[]>([]);
+  const [showProfileModal, setShowProfileModal] = useState(false);
 
+  // =========================
+  // PAYMENT POPUP
+  // =========================
+  const [paymentPopup, setPaymentPopup] = useState<{
+    open: boolean;
+    type: "success" | "error" | "pending";
+    title: string;
+    message: string;
+  }>({
+    open: false,
+    type: "success",
+    title: "",
+    message: "",
+  });
+
+  // =========================
+  // POPUP HELPER
+  // =========================
+  const showPaymentPopup = (
+    type: "success" | "error" | "pending",
+    title: string,
+    message: string,
+  ) => {
+    setPaymentPopup({
+      open: true,
+      type,
+      title,
+      message,
+    });
+  };
+
+  // =========================
+  // FILTER SELECTED ITEMS
+  // =========================
   useEffect(() => {
     setSelectedItems((prev) =>
       prev.filter((id) => cart.some((item) => item.id === id)),
@@ -21,7 +136,7 @@ export default function CartPage() {
   }, [cart]);
 
   // =========================
-  // CHECKBOX ITEM
+  // TOGGLE ITEM
   // =========================
   const toggleItem = (id: string) => {
     setSelectedItems((prev) =>
@@ -32,7 +147,7 @@ export default function CartPage() {
   };
 
   // =========================
-  // CHECKBOX ALL
+  // SELECT ALL
   // =========================
   const isAllSelected = cart.length > 0 && selectedItems.length === cart.length;
 
@@ -45,90 +160,192 @@ export default function CartPage() {
   };
 
   // =========================
-  // TOTAL
+  // SUBTOTAL
   // =========================
   const subtotal = cart
     .filter((item) => selectedItems.includes(item.id))
     .reduce((acc, item) => acc + item.harga * item.qty, 0);
 
   // =========================
-  // LOADING STATE
+  // CHECKOUT
+  // =========================
+  const handleCheckout = async () => {
+    try {
+      const selectedProductIds = cart
+        .filter((item) => selectedItems.includes(item.id))
+        .map((item) => item.id);
+
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          itemIds: selectedProductIds,
+        }),
+      });
+
+      const data = await response.json();
+
+      // PROFILE NOT COMPLETE
+      if (response.status === 400 && data.message?.includes("alamat")) {
+        setShowProfileModal(true);
+        return;
+      }
+
+      // ERROR
+      if (!response.ok) {
+        showPaymentPopup(
+          "error",
+          "Checkout Gagal",
+          data.message || "Terjadi kesalahan.",
+        );
+        return;
+      }
+
+      // MIDTRANS
+      if (!window.snap) {
+        showPaymentPopup(
+          "error",
+          "Midtrans Error",
+          "Snap Midtrans belum dimuat.",
+        );
+        return;
+      }
+
+      // SNAP PAY
+      window.snap.pay(data.snapToken, {
+        onSuccess: function (result: any) {
+          // console.log(result);
+          fetchCart();
+          showPaymentPopup(
+            "success",
+            "Pembayaran Berhasil",
+            "Terima kasih. Pesanan Anda berhasil diproses.",
+          );
+
+          setTimeout(() => {
+            window.location.reload();
+          }, 2500);
+        },
+
+        onPending: function (result: any) {
+          // console.log(result);
+          fetchCart();
+          showPaymentPopup(
+            "pending",
+            "Menunggu Pembayaran",
+            "Silakan selesaikan pembayaran Anda terlebih dahulu.",
+          );
+        },
+
+        onError: function (result: any) {
+          // console.log(result);
+          fetchCart();
+          showPaymentPopup(
+            "error",
+            "Pembayaran Gagal",
+            "Terjadi kesalahan saat memproses pembayaran.",
+          );
+        },
+
+        onClose: function () {
+          fetchCart();
+          showPaymentPopup(
+            "error",
+            "Pembayaran Dibatalkan",
+            "Anda menutup popup pembayaran.",
+          );
+        },
+      });
+    } catch (error) {
+      console.log(error);
+
+      showPaymentPopup(
+        "error",
+        "Terjadi Kesalahan",
+        "Gagal melakukan checkout.",
+      );
+    }
+  };
+
+  // =========================
+  // LOADING
+  // =========================
+  // =========================
+  // LOADING - SKELETON
   // =========================
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 pb-20 pt-12 animate-pulse">
-        <div className="container mx-auto px-6">
-          {/* TITLE */}
-          <div className="h-10 w-56 bg-gray-200 rounded mb-12" />
+        <div className="container mx-auto px-4 sm:px-6">
+          {/* Title */}
+          <div className="h-9 w-48 bg-gray-200 rounded-xl mb-12" />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
             {/* LEFT */}
-            <div className="lg:col-span-2 space-y-6">
-              {/* HEADER */}
-              <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div className="lg:col-span-2 space-y-4">
+              {/* Header */}
+              <div className="bg-white p-6 rounded-2xl flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="w-6 h-6 bg-gray-200 rounded" />
-                  <div className="h-4 w-40 bg-gray-200 rounded" />
+                  <div className="h-4 w-36 bg-gray-200 rounded" />
                 </div>
-
                 <div className="h-4 w-24 bg-gray-200 rounded" />
               </div>
 
-              {/* SKELETON ITEMS */}
-              {Array.from({ length: 3 }).map((_, index) => (
+              {/* Skeleton Items */}
+              {Array.from({ length: 3 }).map((_, i) => (
                 <div
-                  key={index}
-                  className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex flex-col sm:flex-row items-center gap-6"
+                  key={i}
+                  className="bg-white p-6 rounded-2xl border border-gray-100 flex items-center gap-6"
                 >
-                  {/* CHECKBOX */}
+                  {/* Checkbox */}
                   <div className="w-6 h-6 bg-gray-200 rounded shrink-0" />
 
-                  {/* IMAGE */}
+                  {/* Image */}
                   <div className="w-24 h-24 bg-gray-200 rounded-xl shrink-0" />
 
-                  {/* INFO */}
-                  <div className="flex-grow space-y-3 w-full">
+                  {/* Info */}
+                  <div className="flex-grow space-y-3">
                     <div className="h-5 w-52 bg-gray-200 rounded" />
-
                     <div className="h-3 w-32 bg-gray-200 rounded" />
-
                     <div className="h-3 w-28 bg-gray-200 rounded" />
-
-                    <div className="flex items-center gap-2 pt-3">
-                      <div className="h-9 w-28 bg-gray-200 rounded-lg" />
+                    <div className="flex items-center gap-2 mt-4">
+                      <div className="h-8 w-8 bg-gray-200 rounded" />
+                      <div className="h-8 w-8 bg-gray-200 rounded" />
+                      <div className="h-8 w-8 bg-gray-200 rounded" />
                     </div>
                   </div>
 
-                  {/* PRICE */}
-                  <div className="flex flex-col items-end gap-4">
+                  {/* Right */}
+                  <div className="flex flex-col items-end gap-4 shrink-0">
                     <div className="h-6 w-32 bg-gray-200 rounded" />
-
-                    <div className="flex gap-3">
-                      <div className="h-10 w-10 bg-gray-200 rounded-lg" />
-                      <div className="h-10 w-24 bg-gray-200 rounded-lg" />
-                    </div>
+                    <div className="h-10 w-10 bg-gray-200 rounded-lg" />
                   </div>
                 </div>
               ))}
             </div>
 
             {/* RIGHT */}
-            <div className="lg:col-span-1">
-              <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 space-y-8">
-                <div className="h-6 w-52 bg-gray-200 rounded" />
+            <div>
+              <div className="bg-white p-8 rounded-3xl space-y-6">
+                {/* Title */}
+                <div className="h-6 w-44 bg-gray-200 rounded" />
 
-                <div className="space-y-4">
-                  <div className="flex justify-between">
-                    <div className="h-4 w-28 bg-gray-200 rounded" />
-                    <div className="h-4 w-10 bg-gray-200 rounded" />
-                  </div>
-
-                  <div className="flex justify-between items-center pb-6 border-b border-gray-100">
-                    <div className="h-5 w-20 bg-gray-200 rounded" />
-                    <div className="h-8 w-40 bg-gray-200 rounded" />
-                  </div>
+                {/* Row 1 */}
+                <div className="flex justify-between items-center">
+                  <div className="h-4 w-28 bg-gray-200 rounded" />
+                  <div className="h-4 w-8 bg-gray-200 rounded" />
                 </div>
 
+                {/* Row 2 */}
+                <div className="flex justify-between items-center pb-6 border-b border-gray-100">
+                  <div className="h-4 w-16 bg-gray-200 rounded" />
+                  <div className="h-7 w-40 bg-gray-200 rounded" />
+                </div>
+
+                {/* Button */}
                 <div className="h-14 w-full bg-gray-200 rounded-2xl" />
               </div>
             </div>
@@ -139,21 +356,18 @@ export default function CartPage() {
   }
 
   // =========================
-  // EMPTY STATE
+  // EMPTY CART
   // =========================
   if (cart.length === 0) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center p-6 text-center space-y-6">
-        <div className="w-48 h-48 bg-gray-100 rounded-full flex items-center justify-center">
-          <Trash2 className="w-20 h-20 text-gray-300" />
-        </div>
-        <h2 className="text-2xl font-bold">Keranjang Anda Kosong</h2>
-        <p className="text-gray-500">
-          Belum ada produk perawatan yang ditambahkan ke keranjang.
-        </p>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-4">
+        <Trash2 className="w-16 h-16 text-gray-300" />
+
+        <h2 className="text-2xl font-bold">Keranjang Kosong</h2>
+
         <Link
           href="/produk"
-          className="bg-brand-blue text-white px-8 py-3 rounded-xl font-bold hover:brightness-110 transition-all"
+          className="bg-brand-yellow px-6 py-3 rounded-xl font-bold"
         >
           Belanja Sekarang
         </Link>
@@ -162,208 +376,252 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-20 pt-12">
-      <div className="container mx-auto px-6">
-        <h1 className="text-3xl font-bold mb-12">Keranjang</h1>
+    <div className="min-h-screen bg-gray-50 pb-20 pt-6 md:pt-10">
+      {/* PROFILE MODAL */}
+      <AnimatePresence>
+        {showProfileModal && (
+          <ProfileIncompleteModal onClose={() => setShowProfileModal(false)} />
+        )}
+      </AnimatePresence>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">
+      {/* PAYMENT POPUP */}
+      <AnimatePresence>
+        {paymentPopup.open && (
+          <div className="fixed inset-0 z-[60] flex items-center justify-center px-4">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+              onClick={() =>
+                setPaymentPopup((prev) => ({
+                  ...prev,
+                  open: false,
+                }))
+              }
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{
+                opacity: 0,
+                scale: 0.9,
+                y: 20,
+              }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                y: 0,
+              }}
+              exit={{
+                opacity: 0,
+                scale: 0.9,
+                y: 20,
+              }}
+              transition={{
+                type: "spring",
+                stiffness: 300,
+                damping: 25,
+              }}
+              className="relative z-10 bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md text-center"
+            >
+              {/* Icon */}
+              <div
+                className={`w-20 h-20 mx-auto rounded-full flex items-center justify-center mb-6 ${
+                  paymentPopup.type === "success"
+                    ? "bg-green-100"
+                    : paymentPopup.type === "pending"
+                      ? "bg-yellow-100"
+                      : "bg-red-100"
+                }`}
+              >
+                <span className="text-4xl">
+                  {paymentPopup.type === "success"
+                    ? "✓"
+                    : paymentPopup.type === "pending"
+                      ? "⏳"
+                      : "✕"}
+                </span>
+              </div>
+
+              {/* Text */}
+              <h2 className="text-2xl font-bold text-gray-900 mb-3">
+                {paymentPopup.title}
+              </h2>
+
+              <p className="text-gray-500 leading-relaxed mb-8">
+                {paymentPopup.message}
+              </p>
+
+              {/* Button */}
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() =>
+                  setPaymentPopup((prev) => ({
+                    ...prev,
+                    open: false,
+                  }))
+                }
+                className="w-full bg-brand-yellow text-gray-900 font-bold py-4 rounded-2xl hover:brightness-105 transition-all"
+              >
+                Tutup
+              </motion.button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* PAGE */}
+      <div className="container mx-auto px-6">
+        <h1 className="text-2xl md:text-3xl font-bold mb-8 md:mb-12">
+          Keranjang
+        </h1>
+
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-10">
           {/* LEFT */}
-          <div className="lg:col-span-2 space-y-6">
+          <div className="lg:col-span-2 space-y-4">
             {/* HEADER */}
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 flex items-center justify-between">
+            <div className="bg-white p-4 md:p-6 rounded-2xl flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <button
                   onClick={toggleSelectAll}
-                  className={`w-6 h-6 rounded flex items-center justify-center transition-all border-2 ${
+                  className={`w-6 h-6 rounded flex items-center justify-center border-2 ${
                     isAllSelected
                       ? "bg-brand-blue border-brand-blue text-white"
-                      : "border-gray-300 bg-white"
+                      : "border-gray-300"
                   }`}
                 >
                   {isAllSelected && <Check className="w-4 h-4" />}
                 </button>
-                <span className="font-bold">
+
+                <span className="font-bold text-sm md:text-base">
                   Pilih Semua ({selectedItems.length})
                 </span>
               </div>
+
               <button
                 onClick={clearCart}
-                className="text-red-500 font-bold hover:underline"
+                className="text-red-500 font-bold text-sm md:text-base whitespace-nowrap"
               >
                 Hapus Semua
               </button>
             </div>
 
-            {/* CART ITEMS */}
-            <div className="space-y-4">
-              {cart.map((item) => {
-                const isSelected = selectedItems.includes(item.id);
+            {/* ITEMS */}
+            {cart.map((item) => {
+              const isSelected = selectedItems.includes(item.id);
 
-                return (
-                  <div
-                    key={item.id}
-                    className={`bg-white p-6 rounded-2xl shadow-sm border transition-all flex flex-col sm:flex-row items-center gap-6 ${
-                      isSelected ? "border-brand-blue" : "border-gray-100"
+              return (
+                <div
+                  key={item.id}
+                  className={`bg-white p-4 sm:p-6 rounded-2xl border flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-6 ${
+                    isSelected ? "border-brand-blue" : "border-gray-100"
+                  }`}
+                >
+                  {/* Checkbox */}
+                  <button
+                    onClick={() => toggleItem(item.id)}
+                    className={`w-6 h-6 rounded border-2 flex items-center justify-center ${
+                      isSelected
+                        ? "bg-brand-blue border-brand-blue text-white"
+                        : "border-gray-300"
                     }`}
                   >
-                    {/* CHECKBOX */}
-                    <button
-                      onClick={() => toggleItem(item.id)}
-                      className={`w-6 h-6 rounded flex items-center justify-center transition-all border-2 shrink-0 ${
-                        isSelected
-                          ? "bg-brand-blue border-brand-blue text-white"
-                          : "border-gray-300 bg-white"
-                      }`}
-                    >
-                      {isSelected && <Check className="w-4 h-4" />}
-                    </button>
+                    {isSelected && <Check className="w-4 h-4" />}
+                  </button>
 
-                    {/* IMAGE */}
-                    <div className="w-24 h-24 bg-gray-50 rounded-xl flex items-center justify-center p-2">
-                      <img
-                        src={item.image_url || "/placeholder.jpg"}
-                        alt={item.nama_product}
-                        className="h-full object-contain"
-                      />
-                    </div>
+                  {/* Image */}
+                  <img
+                    src={item.image_url || "/placeholder.jpg"}
+                    alt={item.nama_product}
+                    className="w-20 h-20 md:w-24 md:h-24 object-contain shrink-0"
+                  />
 
-                    {/* INFO */}
-                    <div className="flex-grow space-y-1 text-center sm:text-left">
-                      <h4 className="font-bold text-lg">{item.nama_product}</h4>
-                      <p className="text-xs text-gray-400">{item.jenis_oli}</p>
-                      <p className="text-xs text-gray-400">{item.peruntukan}</p>
+                  {/* Info */}
+                  <div className="flex-grow min-w-0">
+                    <h4 className="font-bold text-base md:text-lg leading-tight">
+                      {item.nama_product}
+                    </h4>
 
-                      {/* QUANTITY */}
-                      <div className="flex items-center justify-center sm:justify-start gap-4 pt-4">
-                        <div className="flex items-center border border-gray-200 rounded-lg overflow-hidden">
-                          <button
-                            onClick={() =>
-                              updateQuantity(item.id, item.qty - 1)
-                            }
-                            className="px-3 py-1 hover:bg-gray-100"
-                          >
-                            -
-                          </button>
-                          <span className="px-4 py-1 text-sm font-bold border-x border-gray-200">
-                            {item.qty}
-                          </span>
-                          <button
-                            onClick={() =>
-                              updateQuantity(item.id, item.qty + 1)
-                            }
-                            className="px-3 py-1 hover:bg-gray-100"
-                          >
-                            +
-                          </button>
-                        </div>
-                      </div>
-                    </div>
+                    <p className="text-xs md:text-sm text-gray-400">
+                      {item.jenis_oli}
+                    </p>
 
-                    {/* PRICE */}
-                    <div className="text-right space-y-4 flex flex-col items-center sm:items-end">
-                      <span className="text-xl font-extrabold text-brand-blue">
-                        Rp. {(item.harga * item.qty).toLocaleString("id-ID")}
-                      </span>
-                      <div className="flex items-center gap-3">
-                        {/* DELETE */}
-                        <button
-                          onClick={() => removeFromCart(item.id)}
-                          className="bg-red-100 text-red-500 p-2 rounded-lg hover:bg-red-500 hover:text-white transition-all shadow-sm"
-                        >
-                          <Trash2 className="w-5 h-5" />
-                        </button>
-                        {/* DETAIL */}
-                        <button className="bg-brand-yellow text-brand-dark px-6 py-2 rounded-lg font-bold text-sm hover:brightness-105 transition-all">
-                          Detail
-                        </button>
-                      </div>
+                    <p className="text-xs md:text-sm text-gray-400">
+                      {item.peruntukan}
+                    </p>
+
+                    {/* Qty */}
+                    <div className="flex items-center gap-3 mt-4">
+                      <button
+                        onClick={() => updateQuantity(item.id, item.qty - 1)}
+                        className="px-3 py-1 border rounded"
+                      >
+                        -
+                      </button>
+
+                      <span>{item.qty}</span>
+
+                      <button
+                        onClick={() => updateQuantity(item.id, item.qty + 1)}
+                        className="w-8 h-8 md:w-9 md:h-9 border rounded-lg flex items-center justify-center"
+                      >
+                        +
+                      </button>
                     </div>
                   </div>
-                );
-              })}
-            </div>
+
+                  {/* Right */}
+                  <div className="flex sm:flex-col items-end justify-between sm:justify-start sm:text-right gap-3 sm:gap-4">
+                    <div className="text-lg md:text-xl font-bold text-brand-blue whitespace-nowrap">
+                      Rp. {(item.harga * item.qty).toLocaleString("id-ID")}
+                    </div>
+
+                    <button
+                      onClick={() => removeFromCart(item.id)}
+                      className="mt-4 bg-red-100 text-red-500 p-2 rounded-lg"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
 
           {/* RIGHT */}
-          <div className="lg:col-span-1">
-            <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 sticky top-32 space-y-8">
-              <h3 className="text-xl font-bold">Ringkasan Belanja</h3>
-              <div className="space-y-4">
-                <div className="flex justify-between text-gray-600">
-                  <span>Produk Dipilih</span>
-                  <span>{selectedItems.length}</span>
-                </div>
-                <div className="flex justify-between items-center pb-6 border-b border-gray-100 text-gray-600">
-                  <span>Total</span>
-                  <span className="text-2xl font-extrabold text-brand-blue">
-                    Rp. {subtotal.toLocaleString("id-ID")}
-                  </span>
-                </div>
+          <div>
+            <div className="bg-white p-6 md:p-8 rounded-3xl xl:sticky xl:top-32">
+              <h3 className="text-xl font-bold mb-6">Ringkasan Belanja</h3>
+
+              <div className="flex justify-between mb-4">
+                <span>Produk Dipilih</span>
+                <span>{selectedItems.length}</span>
               </div>
 
-              <button
+              <div className="flex justify-between border-b pb-6 mb-6">
+                <span>Total</span>
+
+                <span className="text-xl md:text-2xl font-bold text-brand-blue text-right break-all">
+                  Rp. {subtotal.toLocaleString("id-ID")}
+                </span>
+              </div>
+
+              <motion.button
                 disabled={selectedItems.length === 0}
-                onClick={async () => {
-                  try {
-                    // ambil productId dari item yang dicentang
-                    const selectedProductIds = cart
-                      .filter((item) => selectedItems.includes(item.id))
-                      .map((item) => item.id);
-
-                    console.log("=== CHECKOUT itemIds ===", selectedProductIds);
-
-                    const response = await fetch("/api/checkout", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        itemIds: selectedProductIds,
-                      }),
-                    });
-
-                    if (!response.ok) {
-                      throw new Error("Checkout gagal");
-                    }
-
-                    const data = await response.json();
-
-                    console.log("=== CHECKOUT RESPONSE ===", data);
-
-                    if (!window.snap) {
-                      alert("Midtrans Snap belum dimuat");
-                      return;
-                    }
-
-                    window.snap.pay(data.snapToken, {
-                      onSuccess: function (result: any) {
-                        console.log(result);
-                        alert("Pembayaran berhasil");
-                        window.location.reload();
-                      },
-                      onPending: function (result: any) {
-                        console.log(result);
-                        alert("Menunggu pembayaran");
-                      },
-                      onError: function (result: any) {
-                        console.log(result);
-                        alert("Pembayaran gagal");
-                      },
-                      onClose: function () {
-                        alert("Popup pembayaran ditutup");
-                      },
-                    });
-                  } catch (error) {
-                    console.log(error);
-                    alert("Terjadi kesalahan saat checkout");
-                  }
-                }}
-                className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-lg active:scale-95 ${
+                onClick={handleCheckout}
+                whileHover={selectedItems.length > 0 ? { scale: 1.02 } : {}}
+                whileTap={selectedItems.length > 0 ? { scale: 0.97 } : {}}
+                className={`w-full py-4 rounded-2xl font-bold text-lg ${
                   selectedItems.length === 0
-                    ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                    : "bg-brand-yellow hover:brightness-105"
+                    ? "bg-gray-300 text-gray-500"
+                    : "bg-brand-yellow text-gray-900"
                 }`}
               >
                 Bayar Sekarang
-              </button>
+              </motion.button>
             </div>
           </div>
         </div>

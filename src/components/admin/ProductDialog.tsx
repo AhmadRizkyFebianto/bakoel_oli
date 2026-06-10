@@ -156,7 +156,7 @@ export function ProductDialog({ open, onOpenChange, product }: Props) {
         <DialogHeader>
           <DialogTitle>{product ? "Edit Produk" : "Tambah Produk"}</DialogTitle>
           <DialogDescription>
-            Sinkron ke backend melalui API <code>/api/produk</code>.
+            Masukkan produk yang sudah ready!.
           </DialogDescription>
         </DialogHeader>
 

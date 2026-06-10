@@ -10,10 +10,10 @@ import {
   Plus,
 } from "lucide-react";
 import Link from "next/link";
-import { Product } from "../types";
-import { FEATURED_PRODUCTS } from "../../data/products";
-import ProductCard from "../../components/ProductCard";
 import { useState, useEffect } from "react";
+import { useCart } from "@/src/lib/CartContext";
+import { useRouter } from "next/navigation";
+import BookingModal from "../../components/BookingModal";
 
 const FEATURES = [
   {
@@ -38,16 +38,30 @@ const FEATURES = [
   },
 ];
 
-interface HomeProps {
-  addToCart: (p: Product) => void;
+interface Product {
+  id: string;
+  nama_product: string;
+  jenis_oli: string;
+  peruntukan: string;
+  cc_motor: string;
+  kekentalan_oli: string;
+  harga: number;
+  stok: number;
+  deskripsi: string;
+  image_url: string;
+  createdAt: string;
 }
 
-export default function Home({ addToCart }: HomeProps) {
+interface ApiResponse {
+  produk: Product[];
+}
+
+export default function Home() {
   return (
     <div className="space-y-0">
       <HeroSection />
       <FeaturesSection />
-      <FeaturedProductsSection addToCart={addToCart} />
+      <FeaturedProductsSection />
       <SeeProductSection />
       <ServiceSelectionSection />
       <FaqSection />
@@ -56,6 +70,18 @@ export default function Home({ addToCart }: HomeProps) {
 }
 
 function HeroSection() {
+  const [jenisOli, setJenisOli] = useState("");
+  const [jenisMesin, setJenisMesin] = useState("");
+  const router = useRouter();
+
+  const handleSearch = () => {
+    const params = new URLSearchParams();
+    params.set("jenis_oli", jenisOli);
+    params.set("peruntukan", jenisMesin);
+
+    router.push(`/produk?${params.toString()}`);
+  };
+
   return (
     <section className="relative h-[800px] flex items-center overflow-hidden">
       <div className="absolute inset-0 z-0">
@@ -86,7 +112,7 @@ function HeroSection() {
           </p>
           <div className="flex flex-col gap-4">
             <Link
-              href="/layanan"
+              href="https://www.google.com/maps?q=-7.2255,112.7667"
               className="w-[230px] bg-brand-yellow text-brand-dark px-8 py-3 rounded-lg font-bold hover:scale-105 transition-all shadow-lg flex items-center gap-2"
             >
               Lihat Lokasi Kami <ChevronRight className="w-5 h-5" />
@@ -128,21 +154,49 @@ function HeroSection() {
           <div className="space-y-4">
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">
-                Tipe Oli
+                Jenis Oli
               </label>
-              <select className="w-full p-3 bg-gray-100 rounded-lg outline-none text-sm appearance-none cursor-pointer">
-                <option>Contoh Oli Mesin</option>
+              <select
+                value={jenisOli}
+                onChange={(e) => setJenisOli(e.target.value)}
+                className="w-full p-3 bg-gray-100 rounded-lg outline-none text-sm appearance-none cursor-pointer"
+                required
+              >
+                <option value="" disabled>
+                  Pilih Jenis Oli
+                </option>
+                <option value="mesin">Mesin</option>
+                <option value="gardan">Gardan</option>
               </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-500 mb-1">
-                Jenis Mesin
+                Jenis Motor
               </label>
-              <select className="w-full p-3 bg-gray-100 rounded-lg outline-none text-sm appearance-none cursor-pointer">
-                <option>Pilih Jenis Mesin</option>
+              <select
+                value={jenisMesin}
+                onChange={(e) => setJenisMesin(e.target.value)}
+                className="w-full p-3 bg-gray-100 rounded-lg outline-none text-sm appearance-none cursor-pointer"
+                required
+              >
+                <option value="" disabled>
+                  Pilih Jenis Motor
+                </option>
+                <option value="motor matic">Motor Matic</option>
+                <option value="motor matic premium">Motor Matic Premium</option>
+                <option value="motor sport">Motor Sport</option>
+                <option value="motor sport premium">Motor Sport Premium</option>
+                <option value="motor bebek">Motor Bebek</option>
+                <option value="motor bebek lama">Motor Bebek Lama</option>
+                <option value="motor 2 tak">Motor 2 Tak</option>
+                <option value="motor harian">Motor Harian</option>
               </select>
             </div>
-            <button className="w-full bg-brand-yellow py-3 rounded-lg font-bold mt-4 hover:brightness-105 transition-all">
+            <button
+              type="button"
+              className="w-full bg-brand-yellow py-3 rounded-lg font-bold mt-4 hover:brightness-105 transition-all"
+              onClick={handleSearch}
+            >
               Cari
             </button>
           </div>
@@ -194,11 +248,54 @@ function FeaturesSection() {
   );
 }
 
-function FeaturedProductsSection({
-  addToCart,
-}: {
-  addToCart: (p: Product) => void;
-}) {
+function FeaturedProductsSection() {
+  const { addToCart } = useCart();
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [addedId, setAddedId] = useState<string | null>(null);
+  const router = useRouter();
+  // Fetch Products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch("/api/produk");
+        if (!response.ok) throw new Error("Gagal mengambil data produk");
+        const data: ApiResponse = await response.json();
+        setProducts(data.produk);
+      } catch (err) {
+        console.error(err);
+        setError("Terjadi kesalahan saat mengambil data produk");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const handleAddCart = (product: Product) => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    addToCart({
+      productId: product.id,
+      nama_product: product.nama_product,
+      harga: product.harga,
+      image_url: product.image_url,
+      jenis_oli: product.jenis_oli,
+      peruntukan: product.peruntukan,
+      qty: 1,
+    });
+    setAddedId(product.id);
+    setTimeout(() => setAddedId(null), 1000);
+  };
+
   return (
     <section className="py-20 bg-gray-50">
       <div className="container mx-auto px-6">
@@ -213,14 +310,99 @@ function FeaturedProductsSection({
             dan umur mesin tetap optimal.
           </p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-          {FEATURED_PRODUCTS.map((product) => (
-            <ProductCard
-              key={product.id}
-              product={product}
-              onAdd={() => addToCart(product)}
-            />
-          ))}
+        <div className="max-w-6xl mx-auto px-6 py-16">
+          {loading && (
+            <div className="flex justify-center items-center py-20">
+              <div className="w-10 h-10 border-4 border-yellow-400 border-t-transparent rounded-full animate-spin" />
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center text-red-500 py-20">{error}</div>
+          )}
+
+          {!loading && !error && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-10 gap-y-12">
+              {products.slice(0, 6).map((product) => (
+                <Link key={product.id} href={`/detail-produk/${product.id}`}>
+                  <motion.div
+                    whileHover={{ y: -8 }}
+                    transition={{ type: "spring", stiffness: 200 }}
+                    className="bg-white rounded-2xl shadow-md hover:shadow-2xl transition-all duration-300 p-6 flex flex-col items-center text-center overflow-hidden"
+                  >
+                    {/* Product Image */}
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      className="w-32 h-32 mb-5 flex items-center justify-center"
+                    >
+                      <img
+                        src={product.image_url || "/placeholder.jpg"}
+                        alt={product.nama_product}
+                        className="w-full h-full object-contain"
+                      />
+                    </motion.div>
+
+                    {/* Product Name */}
+                    <h3 className="text-2xl font-bold text-gray-800 leading-tight">
+                      {product.nama_product}
+                    </h3>
+
+                    {/* Subtitle */}
+                    <p className="text-sm text-gray-400 mt-2">
+                      Untuk Motor {product.peruntukan}
+                    </p>
+
+                    {/* Price */}
+                    <div className="mt-4 text-3xl font-extrabold text-blue-700">
+                      Rp. {(product.harga ?? 0).toLocaleString("id-ID")}
+                    </div>
+
+                    {/* Add To Cart */}
+                    <motion.button
+                      whileTap={{ scale: 0.92 }}
+                      whileHover={{ scale: 1.03 }}
+                      animate={
+                        addedId === product.id ? { scale: [1, 1.1, 1] } : {}
+                      }
+                      transition={{ duration: 0.4 }}
+                      className={`mt-6 px-8 py-3 rounded-full font-bold w-full transition-all duration-300 ${
+                        addedId === product.id
+                          ? "bg-green-500 text-white"
+                          : "bg-yellow-400 text-black hover:brightness-105"
+                      }`}
+                      onClick={(e) => {
+                        e.preventDefault(); // supaya tidak redirect ketika klik button
+                        handleAddCart(product);
+                      }}
+                    >
+                      <AnimatePresence mode="wait">
+                        {addedId === product.id ? (
+                          <motion.span
+                            key="success"
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0 }}
+                            className="flex items-center justify-center gap-2"
+                          >
+                            ✓ Ditambahkan
+                          </motion.span>
+                        ) : (
+                          <motion.span
+                            key="default"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                          >
+                            Tambah Keranjang
+                          </motion.span>
+                        )}
+                      </AnimatePresence>
+                    </motion.button>
+                  </motion.div>
+                </Link>
+              ))}
+            </div>
+          )}
         </div>
         <div className="flex items-center justify-between my-12">
           <div className="w-[25px] h-[25px]" />
@@ -281,6 +463,34 @@ function SeeProductSection() {
 }
 
 function ServiceSelectionSection() {
+  const router = useRouter();
+  const [openModal, setOpenModal] = useState(false);
+
+  const [selectedPlace, setSelectedPlace] = useState<"rumah" | "bengkel">(
+    "rumah",
+  );
+  const handleBookNow = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    setSelectedPlace("bengkel");
+    setOpenModal(true);
+  };
+  const handleBookHome = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    setSelectedPlace("rumah");
+    setOpenModal(true);
+  };
   return (
     <section className="py-20 bg-blue-50/30">
       <div className="container mx-auto px-6 text-center mb-12">
@@ -292,41 +502,72 @@ function ServiceSelectionSection() {
         </p>
       </div>
       <div className="container mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-8 max-w-5xl">
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center">
-          <div className="w-auto h-48 mb-6">
-            <img
-              src="/assets/Rumah.png"
-              alt="Home service"
-              className="w-96 h-48"
-            />
-          </div>
-          <h3 className="text-2xl font-bold mb-3">Servis di Rumah</h3>
-          <p className="text-gray-500 mb-8 text-sm">
-            Mekanik handal kami siap datang langsung ke lokasi Anda
-            (Rumah/Kantor).
-          </p>
-          <button className="w-full bg-brand-blue text-white py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors">
-            Booking Sekarang
-          </button>
-        </div>
-        <div className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center">
-          <div className="w-auto h-48 mb-6">
-            <img
-              src="/assets/Bengkel.png"
-              alt="Workshop service"
-              className="w-96 h-48"
-            />
-          </div>
-          <h3 className="text-2xl font-bold mb-3">Servis di Bengkel</h3>
-          <p className="text-gray-500 mb-8 text-sm">
-            Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda.
-          </p>
-          <button className="w-full bg-brand-yellow text-brand-dark py-3 rounded-xl font-bold hover:brightness-105 transition-all">
-            Pilih Jadwal
-          </button>
-        </div>
+        <ServiceCard
+          image="/assets/Rumah.png"
+          alt="Home Service"
+          title="Servis di Rumah"
+          description="Mekanik handal kami siap datang langsung ke lokasi Anda (Rumah/Kantor). Tidak perlu repot keluar rumah, kami yang datang kepada Anda."
+          buttonLabel="Booking Sekarang"
+          buttonClass="bg-brand-blue text-white hover:brightness-110"
+          onClick={handleBookHome}
+        />
+        <ServiceCard
+          image="/assets/Bengkel.png"
+          alt="Workshop"
+          title="Servis di Bengkel"
+          description="Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda. Nikmati fasilitas bengkel yang lengkap dan modern."
+          buttonLabel="Pilih Jadwal"
+          buttonClass="bg-brand-yellow text-brand-dark hover:brightness-105"
+          onClick={handleBookNow}
+        />
       </div>
+      <BookingModal
+        isOpen={openModal}
+        onClose={() => setOpenModal(false)}
+        defaultPlace={selectedPlace}
+      />
     </section>
+  );
+}
+
+interface ServiceCardProps {
+  image: string;
+  alt: string;
+  title: string;
+  description: string;
+  buttonLabel: string;
+  buttonClass: string;
+  onClick: () => void;
+}
+
+function ServiceCard({
+  image,
+  alt,
+  title,
+  description,
+  buttonLabel,
+  buttonClass,
+  onClick,
+}: ServiceCardProps) {
+  return (
+    <motion.div
+      whileHover={{ y: -10 }}
+      className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center"
+    >
+      <div className="w-auto h-48 mb-6">
+        <img src={image} alt={alt} className="w-96 h-48" />
+      </div>
+      <h3 className="text-3xl font-bold mb-4">{title}</h3>
+      <p className="text-gray-500 mb-10 text-sm leading-relaxed">
+        {description}
+      </p>
+      <button
+        onClick={onClick}
+        className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-md active:scale-95 ${buttonClass}`}
+      >
+        {buttonLabel}
+      </button>
+    </motion.div>
   );
 }
 

@@ -2,6 +2,9 @@
 import { motion } from "framer-motion";
 import { Clock, Calendar, Users, Star } from "lucide-react";
 import PageBanner from "../../../components/PageBanner";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import BookingModal from "../../../components/BookingModal";
 
 const TRUST_ITEMS = [
   { icon: <Clock className="w-5 h-5" />, label: "Layanan Cepat" },
@@ -11,6 +14,34 @@ const TRUST_ITEMS = [
 ];
 
 export default function Services() {
+  const router = useRouter();
+  const [openModal, setOpenModal] = useState(false);
+
+  const [selectedPlace, setSelectedPlace] = useState<"rumah" | "bengkel">(
+    "rumah",
+  );
+  const handleBookNow = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    setSelectedPlace("bengkel");
+    setOpenModal(true);
+  };
+  const handleBookHome = () => {
+    const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+    if (!isLoggedIn) {
+      router.push("/login");
+      return;
+    }
+
+    setSelectedPlace("rumah");
+    setOpenModal(true);
+  };
   return (
     <div className="min-h-screen bg-gray-50">
       <PageBanner
@@ -41,6 +72,7 @@ export default function Services() {
             description="Mekanik handal kami siap datang langsung ke lokasi Anda (Rumah/Kantor). Tidak perlu repot keluar rumah, kami yang datang kepada Anda."
             buttonLabel="Booking Sekarang"
             buttonClass="bg-brand-blue text-white hover:brightness-110"
+            onClick={handleBookHome}
           />
           <ServiceCard
             image="/assets/Bengkel.png"
@@ -49,12 +81,14 @@ export default function Services() {
             description="Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda. Nikmati fasilitas bengkel yang lengkap dan modern."
             buttonLabel="Pilih Jadwal"
             buttonClass="bg-brand-yellow text-brand-dark hover:brightness-105"
+            onClick={handleBookNow}
           />
         </div>
       </div>
 
       {/* Trust Section - full width, menyatu dengan footer */}
-      <div className="w-full bg-blue-600 py-16 text-center">
+      <div className="w-full bg-brand-blue relative py-16 text-center">
+        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
         <div className="flex flex-col items-center gap-6">
           <h2 className="text-4xl font-bold text-white">
             Percayakan Perawatan mesin pada bengkel{" "}
@@ -71,6 +105,11 @@ export default function Services() {
           </button>
         </div>
       </div>
+      <BookingModal
+        isOpen={openModal}
+        onClose={() => setOpenModal(false)}
+        defaultPlace={selectedPlace}
+      />
     </div>
   );
 }
@@ -82,6 +121,7 @@ interface ServiceCardProps {
   description: string;
   buttonLabel: string;
   buttonClass: string;
+  onClick: () => void;
 }
 
 function ServiceCard({
@@ -91,20 +131,22 @@ function ServiceCard({
   description,
   buttonLabel,
   buttonClass,
+  onClick,
 }: ServiceCardProps) {
   return (
     <motion.div
       whileHover={{ y: -10 }}
-      className="bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100 flex flex-col items-center text-center group"
+      className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center"
     >
-      <div className="w-56 h-56 mb-8 overflow-hidden">
-        <img src={image} alt={alt} className="w-full object-contain" />
+      <div className="w-auto h-48 mb-6">
+        <img src={image} alt={alt} className="w-96 h-48" />
       </div>
       <h3 className="text-3xl font-bold mb-4">{title}</h3>
       <p className="text-gray-500 mb-10 text-sm leading-relaxed">
         {description}
       </p>
       <button
+        onClick={onClick}
         className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-md active:scale-95 ${buttonClass}`}
       >
         {buttonLabel}
