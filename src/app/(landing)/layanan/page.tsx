@@ -17,9 +17,9 @@ export default function Services() {
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false);
 
-  const [selectedService, setSelectedService] = useState<"oli" | "ringan">(
-    "oli",
-  );
+  const [selectedService, setSelectedService] = useState<
+    "ganti-oli" | "ringan"
+  >("ganti-oli");
   const handleBookNow = () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
@@ -28,7 +28,7 @@ export default function Services() {
       return;
     }
 
-    setSelectedService("oli");
+    setSelectedService("ganti-oli");
     setOpenModal(true);
   };
   const handleBookHome = () => {
