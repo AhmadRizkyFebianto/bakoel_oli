@@ -11,6 +11,7 @@ import {
   Settings,
   LogOut,
   BookText,
+  UserCog,
 } from "lucide-react";
 
 import {
@@ -31,6 +32,7 @@ const mainItems = [
   { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
   { title: "Produk", url: "/dashboard/produk", icon: Package },
   { title: "Pesanan", url: "/dashboard/pesanan", icon: ShoppingCart },
+  { title: "Worker", url: "/dashboard/worker", icon: UserCog },
 ];
 
 export function AppSidebar() {
