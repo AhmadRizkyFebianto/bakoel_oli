@@ -79,6 +79,7 @@ export default function BookingModal({
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [successData, setSuccessData] = useState<any>(null);
+  const [successBookingId, setSuccessBookingId] = useState<string | null>(null);
 
   useEffect(() => {
     setSelectedService(defaultService);
@@ -199,6 +200,10 @@ export default function BookingModal({
       if (!response.ok) {
         throw new Error(result.message || "Booking gagal");
       }
+
+      // Simpan bookingId untuk redirect ke detail-service/[id]
+      const bookingIdFromApi = result?.booking?.id ?? null;
+      setSuccessBookingId(bookingIdFromApi);
 
       setSuccessData({
         ...payload,
@@ -444,6 +449,7 @@ export default function BookingModal({
         isOpen={showSuccess}
         onClose={() => setShowSuccess(false)}
         bookingData={successData}
+        bookingId={successBookingId}
       />
     </>
   );

@@ -3,6 +3,8 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, CalendarDays, Clock3 } from "lucide-react";
 
+import { useRouter } from "next/navigation";
+
 interface BookingSuccessModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -10,13 +12,23 @@ interface BookingSuccessModalProps {
     jenisService: string;
     tempatService: string;
   } | null;
+  bookingId?: string | null;
 }
 
 export default function BookingSuccessModal({
   isOpen,
   onClose,
   bookingData,
+  bookingId,
 }: BookingSuccessModalProps) {
+  const router = useRouter();
+
+  const handleFinish = () => {
+    onClose();
+    if (bookingId) {
+      router.push(`/detail-service/${bookingId}`);
+    }
+  };
   if (!bookingData) return null;
 
   const formattedDate = new Date().toLocaleDateString("id-ID", {
@@ -105,7 +117,7 @@ export default function BookingSuccessModal({
 
             {/* Button */}
             <button
-              onClick={onClose}
+              onClick={handleFinish}
               className="w-full h-14 rounded-full bg-[#FACC15] text-[#0F172A] font-bold text-lg hover:brightness-105 transition-all duration-300 active:scale-[0.98]"
             >
               Selesai
