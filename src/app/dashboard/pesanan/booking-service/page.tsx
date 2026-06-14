@@ -33,11 +33,21 @@ import {
   DialogTrigger,
 } from "@/src/components/ui/dialog";
 import { Toaster } from "@/src/components/ui/sonner";
+import { toast } from "sonner";
 
 import { formatTanggal } from "@/src/lib/orders.store";
+
 import Link from "next/link";
 
-type BookingStatus = "Menunggu" | "Selesai" | "Batal";
+
+type BookingStatus = "Menunggu" | "Working" | "Selesai" | "Batal";
+
+type WorkerOption = {
+  id: string;
+  name: string;
+  status: "FREE" | "BUSY";
+};
+
 
 type Booking = {
   id: string;
@@ -45,6 +55,8 @@ type Booking = {
   jenisService: string;
   tempatService: string;
   status: BookingStatus;
+  workerId: string | null;
+  worker: WorkerOption | null;
   user: {
     username: string;
     nomor_hp?: string | null;
@@ -52,15 +64,18 @@ type Booking = {
   };
 };
 
+
 function statusBadge(s: BookingStatus) {
   const map: Record<BookingStatus, string> = {
     Menunggu: "bg-chart-4/20 text-foreground border-chart-4/20",
+    Working: "bg-chart-4/20 text-foreground border-chart-4/20",
     Selesai: "bg-success/20 text-success-foreground border-success/20",
     Batal: "bg-destructive/15 text-foreground border-primary/30",
   };
 
-  const labelMap: Record<BookingStatus, string> = {
+  const labelMap: Partial<Record<BookingStatus, string>> = {
     Menunggu: "Menunggu",
+    Working: "Working",
     Selesai: "Selesai",
     Batal: "Batal",
   };
@@ -97,6 +112,36 @@ export default function BookingServicePage() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState<"Semua" | BookingStatus>("Semua");
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [workers, setWorkers] = useState<WorkerOption[]>([]);
+  const [workerBusyAllShown, setWorkerBusyAllShown] = useState(false);
+
+
+  const fetchWorkers = async () => {
+    try {
+      const res = await axios.get("/api/workers");
+      const nextWorkers: WorkerOption[] = res.data.workers ?? [];
+      setWorkers(nextWorkers);
+
+      // reset flag jika masih ada worker FREE
+      const freeCount = nextWorkers.filter((w) => w.status === "FREE").length;
+      if (freeCount > 0) setWorkerBusyAllShown(false);
+    } catch (err) {
+      console.error("Gagal mengambil data workers:", err);
+      toast("Gagal memuat data workers" as any);
+    }
+  };
+
+
+
+  useEffect(() => {
+    fetchWorkers();
+    const interval = setInterval(() => {
+      fetchWorkers();
+    }, 3000);
+
+    return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     async function fetchBookings() {
@@ -226,6 +271,7 @@ export default function BookingServicePage() {
                 <TableHead className="font-bold text-foreground">Tempat Service</TableHead>
                 <TableHead className="font-bold text-foreground">Tanggal & Jam</TableHead>
                 <TableHead className="font-bold text-foreground">Status</TableHead>
+                <TableHead className="font-bold text-foreground">Worker</TableHead>
                 <TableHead className="font-bold text-foreground text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -285,6 +331,81 @@ export default function BookingServicePage() {
                     </TableCell>
 
                     <TableCell>{statusBadge(b.status)}</TableCell>
+
+                    <TableCell>
+                        <Select
+                          value={b.worker?.id ?? ""}
+                          disabled={!!b.worker}
+                          onValueChange={async (workerId) => {
+                            if (!workerId || workerId === "__empty__") return;
+
+                            try {
+                              setLoading(true);
+                              await axios.put("/api/booking", {
+                                bookingId: b.id,
+                                workerId,
+                              });
+
+                              const [bookingRes, workerRes] = await Promise.all([
+                                axios.get("/api/booking"),
+                                axios.get("/api/workers"),
+                              ]);
+
+                              setBookings(bookingRes.data.bookings ?? []);
+                              const nextWorkers: WorkerOption[] =
+                                workerRes.data.workers ?? [];
+                              setWorkers(nextWorkers);
+
+                              toast("Worker berhasil ditugaskan" as any);
+                            } catch (err) {
+                              console.error("Gagal menugaskan worker:", err);
+                              toast("Gagal menugaskan worker" as any);
+                            } finally {
+                              setLoading(false);
+                            }
+                          }}
+                        >
+                        <SelectTrigger className="w-full">
+                          <SelectValue
+                            placeholder={
+                              workers.some((w) => w.status === "FREE")
+                                ? "Pilih worker"
+                                : "Tidak ada worker tersedia"
+                            } 
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(() => {
+                            const selectedId = b.worker?.id ?? "";
+                            const selectedWorker = workers.find((w) => w.id === selectedId);
+                            const freeWorkers = workers.filter((w) => w.status === "FREE");
+
+                            const items = selectedWorker
+                              ? [
+                                  selectedWorker,
+                                  ...freeWorkers.filter((w) => w.id !== selectedWorker.id),
+                                ]
+                              : freeWorkers;
+
+                            // Jika tidak ada worker tersedia
+                            if (items.length === 0) {
+                              return (
+                                <SelectItem value="__empty__" disabled>
+                                  -
+                                </SelectItem>
+                              );
+                            }
+
+                            return items.map((w) => (
+                              <SelectItem key={w.id} value={w.id}>
+                                {w.name}
+                              </SelectItem>
+                            ));
+                          })()}
+                        </SelectContent>
+
+                      </Select>
+                    </TableCell>
 
                     <TableCell className="text-right">
                       <Dialog
@@ -376,54 +497,67 @@ export default function BookingServicePage() {
 
                             <Card className="border-border shadow-[var(--shadow-card)] p-4">
                               <div className="flex items-center justify-between mb-3">
-                                <p className="font-semibold text-foreground">Service</p>
-                                {statusBadge(b.status)}
-                              </div>
-
-                              <div className="space-y-3">
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Jenis</p>
-                                  <p className="text-sm font-semibold text-foreground mt-1">
-                                    {b.jenisService ?? "-"}
-                                  </p>
-                                </div>
-                                <div>
-                                  <p className="text-xs text-muted-foreground">Tempat</p>
-                                  <p className="text-sm font-semibold text-foreground mt-1">
-                                    {b.tempatService ?? "-"}
-                                  </p>
-                                </div>
-                              </div>
-
-                              <div className="border-t border-border mt-4 pt-3 flex items-center justify-between gap-3">
-                                <p className="text-sm text-muted-foreground">Aksi</p>
-                                {b.status === "Menunggu" ? (
-                                  <Button
-                                    className="shadow-[var(--shadow-yellow)] cursor-pointer"
-                                    onClick={async () => {
-                                      try {
-                                        setLoading(true);
-                                        await axios.put("/api/booking", {
-                                          bookingId: b.id,
-                                          status: "Selesai",
-                                        });
-
-                                        const res = await axios.get("/api/booking");
-                                        setBookings(res.data.bookings ?? []);
-                                      } catch (err) {
-                                        console.error("Gagal update status booking:", err);
-                                      } finally {
-                                        setLoading(false);
-                                      }
-                                    }}
-                                  >
-                                    Selesai
-                                  </Button>
+                                <p className="font-semibold text-foreground">Worker</p>
+                                {b.worker ? (
+                                  <span className="text-sm font-semibold text-foreground">{b.worker.name}</span>
                                 ) : (
-                                  <span className="text-sm text-muted-foreground">Service Done</span>
+                                  <span className="text-sm text-muted-foreground">-</span>
                                 )}
                               </div>
-                              <p className="text-red-400">Tekan selesai jika proses service telah selesai.</p>
+
+                          <div className="flex items-center justify-between mb-3">
+                            <p className="font-semibold text-foreground">Service</p>
+                            {statusBadge(b.status)}
+                          </div>
+
+                          <div className="space-y-3">
+                            <div>
+                              <p className="text-xs text-muted-foreground">Jenis</p>
+                              <p className="text-sm font-semibold text-foreground mt-1">
+                                {b.jenisService ?? "-"}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground">Tempat</p>
+                              <p className="text-sm font-semibold text-foreground mt-1">
+                                {b.tempatService ?? "-"}
+                              </p>
+                            </div>
+                          </div>
+
+                          <div className="border-t border-border mt-4 pt-3 flex items-center justify-between gap-3">
+                            <p className="text-sm text-muted-foreground">Aksi</p>
+                            {b.status === "Menunggu" || b.status === "Working" ? (
+                              <Button
+                                className="shadow-[var(--shadow-yellow)] cursor-pointer"
+                                onClick={async () => {
+                                  try {
+                                    setLoading(true);
+                                    await axios.put("/api/booking", {
+                                      bookingId: b.id,
+                                      status: "Selesai",
+                                    });
+
+                                    const res = await axios.get("/api/booking");
+                                    setBookings(res.data.bookings ?? []);
+                                  } catch (err) {
+                                    console.error("Gagal update status booking:", err);
+                                  } finally {
+                                    setLoading(false);
+                                  }
+                                }}
+                              >
+                                Selesai
+                              </Button>
+                            ) : (
+                              <span className="text-sm text-muted-foreground">Service Done</span>
+                            )}
+                          </div>
+                          {(b.status === "Menunggu" || b.status === "Working") && (
+                            <p className="text-red-400">
+                              Tekan selesai jika proses service telah selesai.
+                            </p>
+                          )}
                             </Card>
 
                           </div>

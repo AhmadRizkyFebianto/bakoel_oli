@@ -524,7 +524,7 @@ function ServiceSelectionSection() {
       <BookingModal
         isOpen={openModal}
         onClose={() => setOpenModal(false)}
-        defaultPlace={selectedPlace}
+        defaultService={selectedPlace === "rumah" ? "ganti-oli" : "ringan"}
       />
     </section>
   );
