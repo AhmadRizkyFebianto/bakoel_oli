@@ -318,6 +318,14 @@ export default function BookingModal({
                     icon={<House />}
                     title="Di Rumah"
                     subtitle="Home Service"
+                    infoList={[
+                      "Teknisi datang ke lokasi anda",
+                      "Ganti oli & servis ringan",
+                      "Pemeriksaan menyeluruh",
+                      "Konsultasi langsung",
+                      "Tidak perlu antre",
+                      "Hemat waktu & tenaga",
+                    ]}
                   />
                   <ServiceCard
                     active={selectedPlace === "bengkel"}
@@ -325,6 +333,14 @@ export default function BookingModal({
                     icon={<Warehouse />}
                     title="Di Bengkel"
                     subtitle="Workshop"
+                    infoList={[
+                      "Semua layanan servis standar",
+                      "Peralatan servis lengkap",
+                      "Pemeriksaan lebih detail",
+                      "Sparepart lebih lengkap",
+                      "Penanganan kerusakan kompleks",
+                      "Area tunggu nyaman",
+                    ]}
                   />
                 </div>
               </div>

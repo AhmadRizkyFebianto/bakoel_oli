@@ -178,10 +178,12 @@ function BookingItem({
   booking,
   onCancel,
   getStatusColor,
+  onViewDetail,
 }: {
   booking: Booking;
   onCancel: () => void;
   getStatusColor: (status: string) => string;
+  onViewDetail: (bookingId: string) => void;
 }) {
   const status = booking.status || "Menunggu";
   const canCancel = status.toLowerCase() === "menunggu";
@@ -227,7 +229,13 @@ function BookingItem({
         </p>
       </div>
 
-      <div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={() => onViewDetail(booking.id)}
+          className="bg-brand-yellow text-brand-dark px-3 py-1.5 rounded-sm text-xs font-bold hover:brightness-105 transition-all shadow-sm"
+        >
+          Lihat Detail
+        </button>
         <button
           onClick={() => onCancel()}
           className="bg-red-500 py-1 px-1.5 rounded-sm text-xs text-white hover:bg-red-600 duration-300 transition-colors"
@@ -760,6 +768,9 @@ function EditHistory({
                       return "bg-green-100 text-green-700";
                     if (status === "batal") return "bg-red-100 text-red-700";
                     return "bg-yellow-100 text-yellow-700";
+                  }}
+                  onViewDetail={(bookingId) => {
+                    window.location.href = `/detail-service/${bookingId}`;
                   }}
                 />
               ))

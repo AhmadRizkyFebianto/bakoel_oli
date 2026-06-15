@@ -433,6 +433,24 @@ export default function DetailServicePage() {
           )}
         </div>
       </section>
+      <div className="w-full bg-brand-blue relative py-16 text-center">
+        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
+        <div className="flex flex-col items-center gap-6">
+          <h2 className="text-4xl font-bold text-white">
+            Percayakan Perawatan mesin pada bengkel{" "}
+            <span className="text-brand-yellow underline">Bakul Oli</span>
+          </h2>
+          <p className="text-white text-lg max-w-2xl">
+            Percayakan perawatan mesin kendaraan Anda pada Bengkel{" "}
+            <span className="text-brand-yellow">Bakul Oli</span>. Layanan
+            profesional dengan teknisi berpengalaman dan oli berkualitas untuk
+            performa optimal.
+          </p>
+          <button className="bg-brand-yellow text-blue-900 font-semibold px-10 py-4 rounded-full mt-2 hover:brightness-105 transition">
+            Lihat Produk Kami
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
