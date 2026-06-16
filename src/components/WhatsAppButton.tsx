@@ -1,15 +1,33 @@
 export default function WhatsAppButton() {
-  // Nomor tujuan WhatsApp
   const phoneNumber = "6288991520696";
 
-  // Template pesan yang ingin ditampilkan otomatis
-  const messageTemplate =
-    "Halo admin Bakul Oli, saya ingin bertanya terkait layanan service motor.";
+  const messageTemplate = `Halo Sobat Bakoel Oli 👋
 
-  // Mengubah teks menjadi format URL yang valid (mengubah spasi menjadi %20, dll)
+Jika ingin konsultasi mengenai kondisi motor anda silahkan isi data dibawah.
+
+📝 Data Pelanggan
+Nama:
+Merek Motor:
+Tipe Motor:
+Tahun Motor:
+
+🔧 Keluhan Motor
+(Jelaskan keluhan yang dialami)
+
+Contoh:
+
+* Mesin sulit dinyalakan
+* Oli cepat berkurang
+* Suara mesin kasar
+* Motor kurang bertenaga
+* Rem kurang pakem
+* Keluhan lainnya
+
+
+Terima kasih.`;
+
   const encodedMessage = encodeURIComponent(messageTemplate);
 
-  // Menggabungkan nomor dan template pesan
   const waLink = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
 
   return (
