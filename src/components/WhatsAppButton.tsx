@@ -1,3 +1,5 @@
+"use client";
+
 export default function WhatsAppButton() {
   const phoneNumber = "6288991520696";
 
