@@ -263,7 +263,6 @@ export default function DetailServicePage() {
       { label: "Jenis Service", value: serviceLabel },
       { label: "Tempat Service", value: placeLabel },
       { label: "Tanggal", value: formatted.date },
-      { label: "Waktu Pemesanan", value: `${formatted.time} WIB` },
       {
         label: "Alamat",
         value:

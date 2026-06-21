@@ -466,9 +466,9 @@ function ServiceSelectionSection() {
   const router = useRouter();
   const [openModal, setOpenModal] = useState(false);
 
-  const [selectedPlace, setSelectedPlace] = useState<"rumah" | "bengkel">(
-    "rumah",
-  );
+  const [selectedService, setSelectedService] = useState<
+    "ganti-oli" | "ringan"
+  >("ganti-oli");
   const handleBookNow = () => {
     const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
 
@@ -477,7 +477,7 @@ function ServiceSelectionSection() {
       return;
     }
 
-    setSelectedPlace("bengkel");
+    setSelectedService("ganti-oli");
     setOpenModal(true);
   };
   const handleBookHome = () => {
@@ -488,7 +488,7 @@ function ServiceSelectionSection() {
       return;
     }
 
-    setSelectedPlace("rumah");
+    setSelectedService("ringan");
     setOpenModal(true);
   };
   return (
@@ -505,26 +505,36 @@ function ServiceSelectionSection() {
         <ServiceCard
           image="/assets/Rumah.png"
           alt="Home Service"
-          title="Servis di Rumah"
-          description="Mekanik handal kami siap datang langsung ke lokasi Anda (Rumah/Kantor). Tidak perlu repot keluar rumah, kami yang datang kepada Anda."
-          buttonLabel="Booking Sekarang"
+          title="Servis Ganti Oli"
+          description="Perawatan berkala dengan ganti oli untuk menjaga performa mesin tetap optimal."
+          details={[
+            "Mesin lebih halus",
+            "BBM lebih irit",
+            "Umur mesin lebih panjang",
+          ]}
+          buttonLabel="Pilih Layanan"
           buttonClass="bg-brand-blue text-white hover:brightness-110"
-          onClick={handleBookHome}
+          onClick={handleBookNow}
         />
         <ServiceCard
           image="/assets/Bengkel.png"
           alt="Workshop"
-          title="Servis di Bengkel"
-          description="Pesan antrean di bengkel rekanan kami dan hemat waktu tunggu Anda. Nikmati fasilitas bengkel yang lengkap dan modern."
-          buttonLabel="Pilih Jadwal"
+          title="Servis Sepeda Ringan"
+          description="Pemeriksaan menyeluruh pada komponen penting untuk keamanan dan kenyamanan"
+          details={[
+            "Lebih aman berkendara",
+            "Deteksi kerusakan lebih awal",
+            "Performa lebih optimal",
+          ]}
+          buttonLabel="Pilih Layanan"
           buttonClass="bg-brand-yellow text-brand-dark hover:brightness-105"
-          onClick={handleBookNow}
+          onClick={handleBookHome}
         />
       </div>
       <BookingModal
         isOpen={openModal}
         onClose={() => setOpenModal(false)}
-        defaultService={selectedPlace === "rumah" ? "ganti-oli" : "ringan"}
+        defaultService={selectedService}
       />
     </section>
   );
@@ -535,6 +545,7 @@ interface ServiceCardProps {
   alt: string;
   title: string;
   description: string;
+  details?: string[];
   buttonLabel: string;
   buttonClass: string;
   onClick: () => void;
@@ -545,6 +556,7 @@ function ServiceCard({
   alt,
   title,
   description,
+  details,
   buttonLabel,
   buttonClass,
   onClick,
@@ -552,15 +564,25 @@ function ServiceCard({
   return (
     <motion.div
       whileHover={{ y: -10 }}
-      className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center text-center"
+      className="bg-white p-8 rounded-3xl shadow-xl border border-gray-100 flex flex-col items-center"
     >
       <div className="w-auto h-48 mb-6">
         <img src={image} alt={alt} className="w-96 h-48" />
       </div>
       <h3 className="text-3xl font-bold mb-4">{title}</h3>
-      <p className="text-gray-500 mb-10 text-sm leading-relaxed">
+      <p className="text-gray-500 text-md mb-2 leading-relaxed">
         {description}
       </p>
+      {details && details.length > 0 && (
+        <ul className="text-left w-full mb-4 space-y-2">
+          {details.map((item, index) => (
+            <li key={index} className="text-gray-600 text-sm flex items-center">
+              <span className="mr-2 text-md font-bold text-brand-blue">✓</span>
+              {item}
+            </li>
+          ))}
+        </ul>
+      )}
       <button
         onClick={onClick}
         className={`w-full py-4 rounded-2xl font-bold text-lg transition-all shadow-md active:scale-95 ${buttonClass}`}

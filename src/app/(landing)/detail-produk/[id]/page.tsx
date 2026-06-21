@@ -218,7 +218,7 @@ export default function ProductDetailPage() {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-3 pt-2">
                 <motion.a
-                  href="https://wa.me/6281234567890"
+                  href="https://wa.me/6288991520696"
                   target="_blank"
                   rel="noopener noreferrer"
                   whileHover={{ scale: 1.02 }}
