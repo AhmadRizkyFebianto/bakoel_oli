@@ -8,6 +8,7 @@ import PageBanner from "../../../components/PageBanner";
 import { motion, AnimatePresence } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
+import CtaBanner from "../../../components/CtaBanner";
 
 interface Product {
   id: string;
@@ -411,6 +412,7 @@ function ProductCardContent() {
           </>
         )}
       </div>
+      <CtaBanner />
     </div>
   );
 }
