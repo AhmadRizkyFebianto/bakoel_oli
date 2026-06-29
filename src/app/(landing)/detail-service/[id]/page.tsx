@@ -140,9 +140,7 @@ function formatJamToWIB(jam: string | Date) {
   };
 }
 
-function getStatusSteps(
-  status: BookingStatus,
-) {
+function getStatusSteps(status: BookingStatus) {
   // Urutan UI: Pesanan Diterima -> Menunggu Teknisi -> Teknisi Menuju Lokasi -> Service Berlangsung -> Selesai
   // Mapping ke status backend:
   // - Menunggu: aktif di "Menunggu Teknisi" (karena masih nunggu)
@@ -158,8 +156,8 @@ function getStatusSteps(
       active: false,
     },
     {
-      label: "Menunggu Teknisi",
-      sub: "Teknisi sedang disiapkan",
+      label: "Service Dilakukan",
+      sub: "Teknisi sedang mengerjakan",
       done: false,
       active: false,
     },
@@ -177,7 +175,7 @@ function getStatusSteps(
   } else if (status === "Working") {
     steps[0].done = true;
     steps[1].done = true;
-    steps[3].active = true;
+    steps[2].active = true;
   } else if (status === "Selesai") {
     steps.forEach((s) => (s.done = true));
   } else if (status === "Batal") {
