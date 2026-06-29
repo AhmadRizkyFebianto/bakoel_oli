@@ -2,7 +2,15 @@
 
 import { useEffect, useMemo, useState } from "react";
 import axios from "axios";
-import { Search, Info, Phone, MapPin, CalendarDays, Handshake, MessageCircle } from "lucide-react";
+import {
+  Search,
+  Info,
+  Phone,
+  MapPin,
+  CalendarDays,
+  Handshake,
+  MessageCircle,
+} from "lucide-react";
 
 import { AdminLayout } from "@/src/components/admin/AdminLayout";
 import { Button } from "@/src/components/ui/button";
@@ -39,7 +47,6 @@ import { formatTanggal } from "@/src/lib/orders.store";
 
 import Link from "next/link";
 
-
 type BookingStatus = "Menunggu" | "Working" | "Selesai" | "Batal";
 
 type WorkerOption = {
@@ -47,7 +54,6 @@ type WorkerOption = {
   name: string;
   status: "FREE" | "BUSY";
 };
-
 
 type Booking = {
   id: string;
@@ -63,7 +69,6 @@ type Booking = {
     alamat?: string | null;
   };
 };
-
 
 function statusBadge(s: BookingStatus) {
   const map: Record<BookingStatus, string> = {
@@ -87,13 +92,7 @@ function statusBadge(s: BookingStatus) {
   );
 }
 
-function TruncatedText({
-  text,
-  lines = 1,
-}: {
-  text: string;
-  lines?: 1 | 2;
-}) {
+function TruncatedText({ text, lines = 1 }: { text: string; lines?: 1 | 2 }) {
   const clamp = lines === 2 ? "line-clamp-2" : "line-clamp-1";
   return (
     <span
@@ -115,7 +114,6 @@ export default function BookingServicePage() {
   const [workers, setWorkers] = useState<WorkerOption[]>([]);
   const [workerBusyAllShown, setWorkerBusyAllShown] = useState(false);
 
-
   const fetchWorkers = async () => {
     try {
       const res = await axios.get("/api/workers");
@@ -130,8 +128,6 @@ export default function BookingServicePage() {
       toast("Gagal memuat data workers" as any);
     }
   };
-
-
 
   useEffect(() => {
     fetchWorkers();
@@ -188,7 +184,7 @@ export default function BookingServicePage() {
   }, [bookings]);
 
   const active = useMemo(
-    () => (activeId ? bookings.find((b) => b.id === activeId) ?? null : null),
+    () => (activeId ? (bookings.find((b) => b.id === activeId) ?? null) : null),
     [activeId, bookings],
   );
 
@@ -228,9 +224,13 @@ export default function BookingServicePage() {
                 <p className="text-xs uppercase tracking-wider text-muted-foreground font-semibold">
                   {s.label}
                 </p>
-                <p className="text-3xl font-black mt-2 text-foreground">{s.value}</p>
+                <p className="text-3xl font-black mt-2 text-foreground">
+                  {s.value}
+                </p>
               </div>
-              <div className={`h-11 w-11 rounded-xl flex items-center justify-center ${s.accent}`} />
+              <div
+                className={`h-11 w-11 rounded-xl flex items-center justify-center ${s.accent}`}
+              />
             </div>
           </Card>
         ))}
@@ -266,13 +266,27 @@ export default function BookingServicePage() {
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30 hover:bg-muted/30">
-                <TableHead className="font-bold text-foreground">Nama</TableHead>
-                <TableHead className="font-bold text-foreground">Jenis Service</TableHead>
-                <TableHead className="font-bold text-foreground">Tempat Service</TableHead>
-                <TableHead className="font-bold text-foreground">Tanggal & Jam</TableHead>
-                <TableHead className="font-bold text-foreground">Status</TableHead>
-                <TableHead className="font-bold text-foreground">Worker</TableHead>
-                <TableHead className="font-bold text-foreground text-right">Aksi</TableHead>
+                <TableHead className="font-bold text-foreground">
+                  Nama
+                </TableHead>
+                <TableHead className="font-bold text-foreground">
+                  Jenis Service
+                </TableHead>
+                <TableHead className="font-bold text-foreground">
+                  Tempat Service
+                </TableHead>
+                <TableHead className="font-bold text-foreground">
+                  Tanggal
+                </TableHead>
+                <TableHead className="font-bold text-foreground">
+                  Status
+                </TableHead>
+                <TableHead className="font-bold text-foreground">
+                  Worker
+                </TableHead>
+                <TableHead className="font-bold text-foreground text-right">
+                  Aksi
+                </TableHead>
               </TableRow>
             </TableHeader>
 
@@ -290,7 +304,10 @@ export default function BookingServicePage() {
                 </TableRow>
               ) : filtered.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={7} className="text-center py-12 text-muted-foreground">
+                  <TableCell
+                    colSpan={7}
+                    className="text-center py-12 text-muted-foreground"
+                  >
                     Tidak ada booking ditemukan.
                   </TableCell>
                 </TableRow>
@@ -312,19 +329,13 @@ export default function BookingServicePage() {
                     <TableCell className="text-muted-foreground min-w-[180px]">
                       <div className="flex flex-col text-sm">
                         <span>
-                          <span className="font-semibold text-foreground">Tanggal:</span>{" "}
+                          <span className="font-semibold text-foreground">
+                            Tanggal:
+                          </span>{" "}
                           {new Date(b.jam).toLocaleDateString("id-ID", {
                             day: "2-digit",
                             month: "long",
                             year: "numeric",
-                          })}
-                        </span>
-
-                        <span>
-                          <span className="font-semibold text-foreground">Jam:</span>{" "}
-                          {new Date(b.jam).toLocaleTimeString("id-ID", {
-                            hour: "2-digit",
-                            minute: "2-digit",
                           })}
                         </span>
                       </div>
@@ -333,57 +344,63 @@ export default function BookingServicePage() {
                     <TableCell>{statusBadge(b.status)}</TableCell>
 
                     <TableCell>
-                        <Select
-                          value={b.worker?.id ?? ""}
-                          disabled={!!b.worker}
-                          onValueChange={async (workerId) => {
-                            if (!workerId || workerId === "__empty__") return;
+                      <Select
+                        value={b.worker?.id ?? ""}
+                        disabled={!!b.worker}
+                        onValueChange={async (workerId) => {
+                          if (!workerId || workerId === "__empty__") return;
 
-                            try {
-                              setLoading(true);
-                              await axios.put("/api/booking", {
-                                bookingId: b.id,
-                                workerId,
-                              });
+                          try {
+                            setLoading(true);
+                            await axios.put("/api/booking", {
+                              bookingId: b.id,
+                              workerId,
+                            });
 
-                              const [bookingRes, workerRes] = await Promise.all([
-                                axios.get("/api/booking"),
-                                axios.get("/api/workers"),
-                              ]);
+                            const [bookingRes, workerRes] = await Promise.all([
+                              axios.get("/api/booking"),
+                              axios.get("/api/workers"),
+                            ]);
 
-                              setBookings(bookingRes.data.bookings ?? []);
-                              const nextWorkers: WorkerOption[] =
-                                workerRes.data.workers ?? [];
-                              setWorkers(nextWorkers);
+                            setBookings(bookingRes.data.bookings ?? []);
+                            const nextWorkers: WorkerOption[] =
+                              workerRes.data.workers ?? [];
+                            setWorkers(nextWorkers);
 
-                              toast("Worker berhasil ditugaskan" as any);
-                            } catch (err) {
-                              console.error("Gagal menugaskan worker:", err);
-                              toast("Gagal menugaskan worker" as any);
-                            } finally {
-                              setLoading(false);
-                            }
-                          }}
-                        >
+                            toast("Worker berhasil ditugaskan" as any);
+                          } catch (err) {
+                            console.error("Gagal menugaskan worker:", err);
+                            toast("Gagal menugaskan worker" as any);
+                          } finally {
+                            setLoading(false);
+                          }
+                        }}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue
                             placeholder={
                               workers.some((w) => w.status === "FREE")
                                 ? "Pilih worker"
                                 : "Tidak ada worker tersedia"
-                            } 
+                            }
                           />
                         </SelectTrigger>
                         <SelectContent>
                           {(() => {
                             const selectedId = b.worker?.id ?? "";
-                            const selectedWorker = workers.find((w) => w.id === selectedId);
-                            const freeWorkers = workers.filter((w) => w.status === "FREE");
+                            const selectedWorker = workers.find(
+                              (w) => w.id === selectedId,
+                            );
+                            const freeWorkers = workers.filter(
+                              (w) => w.status === "FREE",
+                            );
 
                             const items = selectedWorker
                               ? [
                                   selectedWorker,
-                                  ...freeWorkers.filter((w) => w.id !== selectedWorker.id),
+                                  ...freeWorkers.filter(
+                                    (w) => w.id !== selectedWorker.id,
+                                  ),
                                 ]
                               : freeWorkers;
 
@@ -403,7 +420,6 @@ export default function BookingServicePage() {
                             ));
                           })()}
                         </SelectContent>
-
                       </Select>
                     </TableCell>
 
@@ -436,11 +452,20 @@ export default function BookingServicePage() {
                             <Card className="border-border shadow-[var(--shadow-card)] p-4">
                               <div className="flex items-center gap-2 mb-2">
                                 <Phone className="h-4 w-4 text-muted-foreground" />
-                                <p className="font-semibold text-foreground">Kontak</p>
+                                <p className="font-semibold text-foreground">
+                                  Kontak
+                                </p>
                               </div>
                               <div className="space-y-3">
                                 <p className="text-sm text-muted-foreground">
-                                  {b.user.nomor_hp ? <TruncatedText text={b.user.nomor_hp} lines={2} /> : "-"}
+                                  {b.user.nomor_hp ? (
+                                    <TruncatedText
+                                      text={b.user.nomor_hp}
+                                      lines={2}
+                                    />
+                                  ) : (
+                                    "-"
+                                  )}
                                 </p>
 
                                 {b.user.nomor_hp && (
@@ -449,7 +474,10 @@ export default function BookingServicePage() {
                                     className="bg-green-600 hover:bg-green-700 text-white w-full"
                                     onClick={() => {
                                       // hapus semua karakter selain angka
-                                      let phone = b.user.nomor_hp.replace(/\D/g, "");
+                                      let phone = b.user.nomor_hp.replace(
+                                        /\D/g,
+                                        "",
+                                      );
 
                                       // jika diawali 0 → ubah jadi 62
                                       if (phone.startsWith("0")) {
@@ -461,7 +489,10 @@ export default function BookingServicePage() {
                                         phone = "62" + phone;
                                       }
 
-                                      window.open(`https://wa.me/${phone}`, "_blank");
+                                      window.open(
+                                        `https://wa.me/${phone}`,
+                                        "_blank",
+                                      );
                                     }}
                                   >
                                     <MessageCircle className="h-4 w-4 mr-2" />
@@ -472,11 +503,16 @@ export default function BookingServicePage() {
 
                               <div className="flex items-center gap-2 mt-4 mb-2">
                                 <MapPin className="h-4 w-4 text-muted-foreground" />
-                                <p className="font-semibold text-foreground">Alamat</p>
+                                <p className="font-semibold text-foreground">
+                                  Alamat
+                                </p>
                               </div>
                               <p className="text-sm text-muted-foreground">
                                 {b.user.alamat ? (
-                                  <TruncatedText text={b.user.alamat} lines={2} />
+                                  <TruncatedText
+                                    text={b.user.alamat}
+                                    lines={2}
+                                  />
                                 ) : (
                                   "-"
                                 )}
@@ -484,82 +520,104 @@ export default function BookingServicePage() {
 
                               <div className="flex items-center gap-2 mt-4 mb-2">
                                 <CalendarDays className="h-4 w-4 text-muted-foreground" />
-                                <p className="font-semibold text-foreground">Tanggal & Jam</p>
+                                <p className="font-semibold text-foreground">
+                                  Tanggal
+                                </p>
                               </div>
                               <p className="text-sm text-muted-foreground">
                                 {new Date(b.jam).toLocaleString("id-ID", {
                                   dateStyle: "medium",
-                                  timeStyle: "short",
                                 })}
                               </p>
-
                             </Card>
 
                             <Card className="border-border shadow-[var(--shadow-card)] p-4">
                               <div className="flex items-center justify-between mb-3">
-                                <p className="font-semibold text-foreground">Worker</p>
+                                <p className="font-semibold text-foreground">
+                                  Worker
+                                </p>
                                 {b.worker ? (
-                                  <span className="text-sm font-semibold text-foreground">{b.worker.name}</span>
+                                  <span className="text-sm font-semibold text-foreground">
+                                    {b.worker.name}
+                                  </span>
                                 ) : (
-                                  <span className="text-sm text-muted-foreground">-</span>
+                                  <span className="text-sm text-muted-foreground">
+                                    -
+                                  </span>
                                 )}
                               </div>
 
-                          <div className="flex items-center justify-between mb-3">
-                            <p className="font-semibold text-foreground">Service</p>
-                            {statusBadge(b.status)}
-                          </div>
+                              <div className="flex items-center justify-between mb-3">
+                                <p className="font-semibold text-foreground">
+                                  Service
+                                </p>
+                                {statusBadge(b.status)}
+                              </div>
 
-                          <div className="space-y-3">
-                            <div>
-                              <p className="text-xs text-muted-foreground">Jenis</p>
-                              <p className="text-sm font-semibold text-foreground mt-1">
-                                {b.jenisService ?? "-"}
-                              </p>
-                            </div>
-                            <div>
-                              <p className="text-xs text-muted-foreground">Tempat</p>
-                              <p className="text-sm font-semibold text-foreground mt-1">
-                                {b.tempatService ?? "-"}
-                              </p>
-                            </div>
-                          </div>
+                              <div className="space-y-3">
+                                <div>
+                                  <p className="text-xs text-muted-foreground">
+                                    Jenis
+                                  </p>
+                                  <p className="text-sm font-semibold text-foreground mt-1">
+                                    {b.jenisService ?? "-"}
+                                  </p>
+                                </div>
+                                <div>
+                                  <p className="text-xs text-muted-foreground">
+                                    Tempat
+                                  </p>
+                                  <p className="text-sm font-semibold text-foreground mt-1">
+                                    {b.tempatService ?? "-"}
+                                  </p>
+                                </div>
+                              </div>
 
-                          <div className="border-t border-border mt-4 pt-3 flex items-center justify-between gap-3">
-                            <p className="text-sm text-muted-foreground">Aksi</p>
-                            {b.status === "Menunggu" || b.status === "Working" ? (
-                              <Button
-                                className="shadow-[var(--shadow-yellow)] cursor-pointer"
-                                onClick={async () => {
-                                  try {
-                                    setLoading(true);
-                                    await axios.put("/api/booking", {
-                                      bookingId: b.id,
-                                      status: "Selesai",
-                                    });
+                              <div className="border-t border-border mt-4 pt-3 flex items-center justify-between gap-3">
+                                <p className="text-sm text-muted-foreground">
+                                  Aksi
+                                </p>
+                                {b.status === "Menunggu" ||
+                                b.status === "Working" ? (
+                                  <Button
+                                    className="shadow-[var(--shadow-yellow)] cursor-pointer"
+                                    onClick={async () => {
+                                      try {
+                                        setLoading(true);
+                                        await axios.put("/api/booking", {
+                                          bookingId: b.id,
+                                          status: "Selesai",
+                                        });
 
-                                    const res = await axios.get("/api/booking");
-                                    setBookings(res.data.bookings ?? []);
-                                  } catch (err) {
-                                    console.error("Gagal update status booking:", err);
-                                  } finally {
-                                    setLoading(false);
-                                  }
-                                }}
-                              >
-                                Selesai
-                              </Button>
-                            ) : (
-                              <span className="text-sm text-muted-foreground">Service Done</span>
-                            )}
-                          </div>
-                          {(b.status === "Menunggu" || b.status === "Working") && (
-                            <p className="text-red-400">
-                              Tekan selesai jika proses service telah selesai.
-                            </p>
-                          )}
+                                        const res =
+                                          await axios.get("/api/booking");
+                                        setBookings(res.data.bookings ?? []);
+                                      } catch (err) {
+                                        console.error(
+                                          "Gagal update status booking:",
+                                          err,
+                                        );
+                                      } finally {
+                                        setLoading(false);
+                                      }
+                                    }}
+                                  >
+                                    Selesai
+                                  </Button>
+                                ) : (
+                                  <span className="text-sm text-muted-foreground">
+                                    Service Done
+                                  </span>
+                                )}
+                              </div>
+                              {(b.status === "Menunggu" ||
+                                b.status === "Working") && (
+                                <p className="text-red-400">
+                                  Tekan selesai jika proses service telah
+                                  selesai.
+                                </p>
+                              )}
                             </Card>
-
                           </div>
                         </DialogContent>
                       </Dialog>
@@ -580,5 +638,3 @@ export default function BookingServicePage() {
     </AdminLayout>
   );
 }
-
-
