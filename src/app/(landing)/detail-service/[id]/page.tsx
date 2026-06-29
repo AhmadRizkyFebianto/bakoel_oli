@@ -142,7 +142,6 @@ function formatJamToWIB(jam: string | Date) {
 
 function getStatusSteps(
   status: BookingStatus,
-  scheduledTimeWib: string | null,
 ) {
   // Urutan UI: Pesanan Diterima -> Menunggu Teknisi -> Teknisi Menuju Lokasi -> Service Berlangsung -> Selesai
   // Mapping ke status backend:
@@ -154,7 +153,7 @@ function getStatusSteps(
   const steps = [
     {
       label: "Pesanan Diterima",
-      sub: scheduledTimeWib || "",
+      sub: "",
       done: false,
       active: false,
     },
@@ -164,7 +163,6 @@ function getStatusSteps(
       done: false,
       active: false,
     },
-    { label: "Teknisi Menuju Lokasi", sub: "", done: false, active: false },
     { label: "Service Berlangsung", sub: "", done: false, active: false },
 
     { label: "Selesai", sub: "", done: false, active: false },
@@ -233,19 +231,17 @@ export default function DetailServicePage() {
     return formatJamToWIB(booking.jam);
   }, [booking]);
 
+  // useMemo statusSteps — hapus argument formatted?.time
   const statusSteps = useMemo(() => {
     if (!booking) return [] as any[];
 
-    // Status service tampil untuk Home Service dan Bengkel.
-    // Namun, "Teknisi Menuju Lokasi" hanya diperlukan untuk Home Service.
     if (booking.tempatService === "bengkel") {
-      const steps = getStatusSteps(booking.status, formatted?.time ?? null);
-      // Hapus langkah "Teknisi Menuju Lokasi" (index 2) untuk bengkel
+      const steps = getStatusSteps(booking.status); // ← tanpa jam
       return steps.filter((_, idx) => idx !== 2);
     }
 
-    return getStatusSteps(booking.status, formatted?.time ?? null);
-  }, [booking, formatted]);
+    return getStatusSteps(booking.status); // ← tanpa jam
+  }, [booking]);
 
   const orderDetails = useMemo(() => {
     if (!booking || !formatted) return [] as { label: string; value: string }[];
